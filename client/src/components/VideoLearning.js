@@ -398,7 +398,7 @@ function VideoLearning({ userId }) {
     // Khởi tạo YouTube player
     setTimeout(() => {
       if (window.YT && window.YT.Player) {
-        const newPlayer = new window.YT.Player('youtube-player', {
+        new window.YT.Player('youtube-player', {
           videoId: video.youtubeId,
           playerVars: {
             controls: 0,
