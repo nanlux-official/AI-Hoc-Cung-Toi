@@ -1,15 +1,13 @@
 # 🎓 AI Học Cùng Tôi
 
-Nền tảng học tập thông minh với 6 module AI hỗ trợ học sinh phát triển tư duy phản biện và học tập chủ động.
+Nền tảng học tập thông minh với AI Mentor V4 - Hỗ trợ học sinh phát triển tư duy phản biện và học tập chủ động theo phương pháp Socratic.
 
-## 🌟 6 Module Chính
+## 🌟 4 Module Chính
 
-### 1. 🧠 AI Mentor - Trí Tuệ Hướng Dẫn
-- Phương pháp Socratic: đặt câu hỏi ngược thay vì cho đáp án
-- Gợi mở tư duy phản biện
-- Giúp học sinh tự khám phá kiến thức
+### 1. 🧠 AI Mentor V4 - Trí Tuệ Hướng Dẫn
+Phương pháp Socratic: đặt câu hỏi ngược thay vì cho đáp án, giúp học sinh tự khám phá kiến thức.
 
-#### 🆕 AI Mentor V4 - Phiên Bản Nâng Cao
+**Tính năng nổi bật:**
 - ✅ **Form cấu hình đầy đủ:** Tên, trường, lớp, môn, bộ sách, giáo viên
 - ✅ **Hệ thống 4 luật gợi ý:** Từ định hướng tổng quát đến gần như lời giải
 - ✅ **Tích hợp LaTeX/KaTeX:** Hiển thị công thức toán học đẹp mắt
@@ -17,33 +15,23 @@ Nền tảng học tập thông minh với 6 module AI hỗ trợ học sinh ph�
 - ✅ **Cheat code M10:** Xem lời giải nhanh khi cần
 - ✅ **Trích dẫn sách giáo khoa:** Tham khảo SGK theo bộ sách đã chọn
 
-👉 **Truy cập:** `/mentor-v4` để trải nghiệm phiên bản mới!  
+👉 **Truy cập:** `/mentor`  
 📖 **Hướng dẫn chi tiết:** Xem file `AI_MENTOR_V4_GUIDE.md`
 
-### 2. 🔍 AI Reflect - Phản Hồi Thông Minh
-- Phân tích lỗi tư duy, không chỉ lỗi kết quả
-- Đưa ra hướng điều chỉnh cụ thể
-- Rèn khả năng tự học - tự sửa sai
-
-### 3. 🏆 Challenge Mode - Thử Thách Phản Biện
-- Tự động điều chỉnh độ khó
-- Đúng >70% → tăng level
-- Sai nhiều → giảm level và gợi ý học lại
-
-### 4. 📈 Learning Tracker - Nhật Ký Học Tập
-- Theo dõi thời gian học, độ chính xác
-- Báo cáo tuần tự động
-- Phân tích điểm mạnh/yếu
-
-### 5. 🎥 Video Learning - Bài Giảng Tương Tác
+### 2. 🎥 Video Learning - Bài Giảng Tương Tác
 - Video tạm dừng mỗi 3 phút để kiểm tra
 - Sai 3 lần → tua lại phần trước
 - Test cuối bài (cần đạt 75%)
 
-### 6. 💪 Health & Focus Tracker
+### 3. 💪 Health & Focus Tracker
 - Theo dõi thời gian học
 - Nhắc nghỉ ngơi theo Pomodoro (25 phút học, 5 phút nghỉ)
 - Đề xuất lịch học tối ưu
+
+### 4. 📊 Dashboard - Tổng Quan
+- Xem tổng quan tiến độ học tập
+- Thống kê và báo cáo
+- Quản lý các module
 
 ## 🚀 Cài Đặt
 
@@ -96,16 +84,19 @@ ai-hoc-cung-toi/
 ├── client/                 # React frontend
 │   ├── public/
 │   ├── src/
-│   │   ├── components/    # 6 module components
+│   │   ├── components/    # Module components
+│   │   │   ├── AIMentorV4.js
+│   │   │   ├── VideoLearning.js
+│   │   │   ├── HealthTracker.js
+│   │   │   └── Dashboard.js
+│   │   ├── data/
+│   │   │   └── schoolData.js
 │   │   ├── App.js
 │   │   └── index.js
 │   └── package.json
 ├── server/                # Express backend
-│   ├── routes/           # API routes cho 6 module
+│   ├── routes/           # API routes
 │   │   ├── aiMentor.js
-│   │   ├── aiReflect.js
-│   │   ├── challenge.js
-│   │   ├── tracker.js
 │   │   ├── video.js
 │   │   └── health.js
 │   └── index.js

@@ -11,17 +11,11 @@ app.use(express.json());
 
 // Import routes
 const aiMentorRoutes = require('./routes/aiMentor');
-const aiReflectRoutes = require('./routes/aiReflect');
-const challengeRoutes = require('./routes/challenge');
-const trackerRoutes = require('./routes/tracker');
 const videoRoutes = require('./routes/video');
 const healthRoutes = require('./routes/health');
 
 // API routes
 app.use('/api/mentor', aiMentorRoutes);
-app.use('/api/reflect', aiReflectRoutes);
-app.use('/api/challenge', challengeRoutes);
-app.use('/api/tracker', trackerRoutes);
 app.use('/api/video', videoRoutes);
 app.use('/api/health', healthRoutes);
 
