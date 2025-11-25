@@ -19,7 +19,7 @@ function AIMentorV4({ userId }) {
     grade: '11',
     subject: 'Hóa học',
     bookSet: 'Kết nối tri thức',
-    teacher: null
+    teacherName: ''
   });
   
   const [showConfig, setShowConfig] = useState(true);
@@ -38,7 +38,7 @@ function AIMentorV4({ userId }) {
   }, [conversation]);
 
   const handleStartSession = () => {
-    if (!config.studentName || !config.school || !config.teacher) {
+    if (!config.studentName || !config.school || !config.teacherName) {
       alert('Vui lòng điền đầy đủ thông tin!');
       return;
     }
@@ -53,9 +53,8 @@ function AIMentorV4({ userId }) {
   };
 
   const getTeacherGreeting = () => {
-    if (!config.teacher) return '';
-    const pronoun = config.teacher.gender === 'Nam' ? 'Thầy' : 'Cô';
-    return `${pronoun} ${config.teacher.name} đã giao cho mình hỗ trợ em.`;
+    if (!config.teacherName) return '';
+    return `Giáo viên ${config.teacherName} đã giao cho mình hỗ trợ em.`;
   };
 
   const callGeminiAPI = async (prompt) => {
@@ -362,7 +361,6 @@ Trình bày rõ ràng, dễ hiểu.`;
 function ConfigPanel({ config, setConfig, onStart }) {
   const availableDistricts = districts[config.province] || [];
   const availableSchools = schools[config.district] || [];
-  const availableTeachers = teachersBySubject[config.subject] || [];
 
   return (
     <div className="config-panel">
@@ -412,7 +410,7 @@ function ConfigPanel({ config, setConfig, onStart }) {
 
         <div className="config-item">
           <label>Môn học *</label>
-          <select value={config.subject} onChange={(e) => setConfig({...config, subject: e.target.value, teacher: null})}>
+          <select value={config.subject} onChange={(e) => setConfig({...config, subject: e.target.value})}>
             {subjects.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
@@ -425,18 +423,13 @@ function ConfigPanel({ config, setConfig, onStart }) {
         </div>
 
         <div className="config-item">
-          <label>Giáo viên *</label>
-          <select value={config.teacher ? config.teacher.name : ''} onChange={(e) => {
-            const teacher = availableTeachers.find(t => t.name === e.target.value);
-            setConfig({...config, teacher});
-          }}>
-            <option value="">-- Chọn giáo viên --</option>
-            {availableTeachers.map(t => (
-              <option key={t.name} value={t.name}>
-                {t.gender === 'Nam' ? 'Thầy' : 'Cô'} {t.name}
-              </option>
-            ))}
-          </select>
+          <label>Tên giáo viên *</label>
+          <input
+            type="text"
+            value={config.teacherName}
+            onChange={(e) => setConfig({...config, teacherName: e.target.value})}
+            placeholder="Nhập tên giáo viên (VD: Thầy Nguyễn Văn A)"
+          />
         </div>
       </div>
 
