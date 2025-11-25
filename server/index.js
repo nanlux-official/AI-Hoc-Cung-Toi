@@ -12,10 +12,12 @@ app.use(express.json());
 // Import routes
 const aiMentorRoutes = require('./routes/aiMentor');
 const healthRoutes = require('./routes/health');
+const geminiRoutes = require('./routes/gemini');
 
 // API routes
 app.use('/api/mentor', aiMentorRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/gemini', geminiRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

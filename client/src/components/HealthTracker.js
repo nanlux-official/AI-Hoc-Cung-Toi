@@ -1,55 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 function HealthTracker({ userId }) {
   const [sessionStart] = useState(Date.now());
   const [studyTime, setStudyTime] = useState(0);
   const [recommendation, setRecommendation] = useState(null);
-  const [schedule, setSchedule] = useState(null);
+  const [breaksTaken, setBreaksTaken] = useState(0);
 
+  // Load data from localStorage
+  useEffect(() => {
+    const savedData = localStorage.getItem(`healthTracker_${userId}`);
+    if (savedData) {
+      const data = JSON.parse(savedData);
+      setStudyTime(data.studyTime || 0);
+      setBreaksTaken(data.breaksTaken || 0);
+    }
+  }, [userId]);
+
+  // Save data to localStorage
+  useEffect(() => {
+    localStorage.setItem(`healthTracker_${userId}`, JSON.stringify({
+      studyTime,
+      breaksTaken,
+      lastUpdate: Date.now()
+    }));
+  }, [studyTime, breaksTaken, userId]);
+
+  // Timer and health check
   useEffect(() => {
     const interval = setInterval(() => {
       setStudyTime(prev => prev + 1);
       checkHealth();
     }, 60000); // Mỗi phút
 
-    fetchSchedule();
-
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [studyTime]);
 
-  const checkHealth = async () => {
-    try {
-      const response = await axios.post('/api/health/track', {
-        userId,
-        sessionStart,
-        currentTime: Date.now()
+  const checkHealth = () => {
+    const minutesSinceBreak = studyTime - (breaksTaken * 25);
+    
+    if (minutesSinceBreak >= 50) {
+      setRecommendation({
+        alert: true,
+        type: 'stop',
+        icon: '🛑',
+        message: 'Dừng lại ngay!',
+        suggestion: 'Bạn đã học quá lâu. Hãy nghỉ ngơi 10-15 phút để não bộ hồi phục.',
+        timeLeft: 0
       });
-      setRecommendation(response.data);
-    } catch (error) {
-      console.error('Error checking health:', error);
+    } else if (minutesSinceBreak >= 25) {
+      setRecommendation({
+        alert: true,
+        type: 'warning',
+        icon: '⚠️',
+        message: 'Đến giờ nghỉ rồi!',
+        suggestion: 'Hãy nghỉ ngơi 5 phút. Đứng dậy, vận động nhẹ, uống nước.',
+        timeLeft: 0
+      });
+    } else {
+      setRecommendation({
+        alert: false,
+        icon: '✅',
+        message: 'Bạn đang học tốt!',
+        timeLeft: 25 - minutesSinceBreak
+      });
     }
   };
 
-  const fetchSchedule = async () => {
-    try {
-      const response = await axios.get(`/api/health/schedule/${userId}`);
-      setSchedule(response.data);
-    } catch (error) {
-      console.error('Error fetching schedule:', error);
-    }
+  const takeBreak = () => {
+    setBreaksTaken(prev => prev + 1);
+    setRecommendation({
+      alert: false,
+      icon: '☕',
+      message: 'Đang nghỉ ngơi...',
+      timeLeft: 25
+    });
+    alert('Nghỉ ngơi 5 phút! Hãy đứng dậy vận động nhẹ nhàng.');
   };
 
-  const takeBreak = async () => {
-    try {
-      await axios.post('/api/health/break', {
-        userId,
-        breakDuration: 5
-      });
-      alert('Nghỉ ngơi 5 phút! Hãy đứng dậy vận động nhẹ nhàng.');
-    } catch (error) {
-      console.error('Error logging break:', error);
+  const resetSession = () => {
+    if (window.confirm('Bạn có chắc muốn reset phiên học?')) {
+      setStudyTime(0);
+      setBreaksTaken(0);
+      setRecommendation(null);
+      localStorage.removeItem(`healthTracker_${userId}`);
     }
   };
 
@@ -59,13 +93,48 @@ function HealthTracker({ userId }) {
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   };
 
+  // Optimal schedule based on Pomodoro
+  const optimalSchedule = [
+    { time: '06:00 - 06:25', subject: 'Học buổi sáng', type: 'study' },
+    { time: '06:25 - 06:30', subject: 'Nghỉ ngắn', type: 'break' },
+    { time: '06:30 - 06:55', subject: 'Tiếp tục học', type: 'study' },
+    { time: '06:55 - 07:10', subject: 'Nghỉ dài', type: 'break' },
+    { time: '19:00 - 19:25', subject: 'Học buổi tối', type: 'study' },
+    { time: '19:25 - 19:30', subject: 'Nghỉ ngắn', type: 'break' },
+    { time: '19:30 - 19:55', subject: 'Tiếp tục học', type: 'study' }
+  ];
+
+  const tips = [
+    'Học 25 phút, nghỉ 5 phút (Pomodoro)',
+    'Uống đủ nước trong ngày (2 lít)',
+    'Ngủ đủ 7-8 tiếng mỗi đêm',
+    'Tập thể dục 30 phút mỗi ngày',
+    'Ăn uống đầy đủ dinh dưỡng'
+  ];
+
   return (
     <div>
       <div className="card">
-        <h2>💪 Health & Focus Tracker</h2>
-        <p style={{ color: '#666', marginBottom: '2rem' }}>
-          Đảm bảo học tập bền vững, không quá tải
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div>
+            <h2>💪 Health & Focus Tracker</h2>
+            <p style={{ color: '#666' }}>
+              Đảm bảo học tập bền vững, không quá tải
+            </p>
+          </div>
+          <button 
+            onClick={resetSession}
+            style={{
+              padding: '0.5rem 1rem',
+              background: '#f0f0f0',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Reset
+          </button>
+        </div>
 
         <div style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -79,6 +148,9 @@ function HealthTracker({ userId }) {
             {formatTime(studyTime)}
           </h3>
           <p>Thời gian học hôm nay</p>
+          <p style={{ fontSize: '0.9rem', opacity: 0.9, marginTop: '0.5rem' }}>
+            Đã nghỉ: {breaksTaken} lần
+          </p>
         </div>
 
         {recommendation && recommendation.alert && (
@@ -107,45 +179,43 @@ function HealthTracker({ userId }) {
         )}
       </div>
 
-      {schedule && (
-        <div className="card">
-          <h3>📅 Lịch Học Tối Ưu</h3>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>
-            {schedule.recommendation}
-          </p>
+      <div className="card">
+        <h3>📅 Lịch Học Tối Ưu (Pomodoro)</h3>
+        <p style={{ color: '#666', marginBottom: '1rem' }}>
+          Học 25 phút, nghỉ 5 phút. Sau 4 chu kỳ, nghỉ dài 15-30 phút.
+        </p>
 
-          <div style={{ 
-            background: '#f5f5f5', 
-            padding: '1.5rem', 
-            borderRadius: '10px',
-            marginBottom: '1rem'
-          }}>
-            {schedule.sessions.map((session, idx) => (
-              <div key={idx} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '0.8rem',
-                background: session.type === 'break' ? '#fff3cd' : 'white',
-                borderRadius: '8px',
-                marginBottom: '0.5rem'
-              }}>
-                <span style={{ fontWeight: 'bold' }}>{session.time}</span>
-                <span>{session.subject}</span>
-                <span>{session.type === 'break' ? '☕' : '📚'}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="alert alert-warning">
-            <h4>💡 Mẹo học tập hiệu quả:</h4>
-            <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
-              {schedule.tips.map((tip, idx) => (
-                <li key={idx}>{tip}</li>
-              ))}
-            </ul>
-          </div>
+        <div style={{ 
+          background: '#f5f5f5', 
+          padding: '1.5rem', 
+          borderRadius: '10px',
+          marginBottom: '1rem'
+        }}>
+          {optimalSchedule.map((session, idx) => (
+            <div key={idx} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              padding: '0.8rem',
+              background: session.type === 'break' ? '#fff3cd' : 'white',
+              borderRadius: '8px',
+              marginBottom: '0.5rem'
+            }}>
+              <span style={{ fontWeight: 'bold' }}>{session.time}</span>
+              <span>{session.subject}</span>
+              <span>{session.type === 'break' ? '☕' : '📚'}</span>
+            </div>
+          ))}
         </div>
-      )}
+
+        <div className="alert alert-warning">
+          <h4>💡 Mẹo học tập hiệu quả:</h4>
+          <ul style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+            {tips.map((tip, idx) => (
+              <li key={idx}>{tip}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       <div className="card">
         <h3>🧘 Bài Tập Thư Giãn</h3>

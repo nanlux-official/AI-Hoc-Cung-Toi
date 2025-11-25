@@ -4,6 +4,10 @@ import './AIMentorV4.css';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { provinces, districts, schools, subjects, grades, bookSets, teachersBySubject } from '../data/schoolData';
+import { createShortPrompt, createHintPrompt, createSolutionPrompt } from './AIMentorV4_short';
+
+// Gemini API Configuration - sử dụng backend proxy
+const GEMINI_PROXY_URL = '/api/gemini/generate';
 
 function AIMentorV4({ userId }) {
   // Cấu hình học sinh
@@ -54,6 +58,20 @@ function AIMentorV4({ userId }) {
     return `${pronoun} ${config.teacher.name} đã giao cho mình hỗ trợ em.`;
   };
 
+  const callGeminiAPI = async (prompt) => {
+    try {
+      const response = await axios.post(GEMINI_PROXY_URL, { prompt });
+
+      if (response.data?.success && response.data?.text) {
+        return response.data.text;
+      }
+      throw new Error('Invalid response from Gemini API');
+    } catch (error) {
+      console.error('Gemini API Error:', error);
+      throw error;
+    }
+  };
+
   const handleSend = async () => {
     if (!currentInput.trim()) return;
 
@@ -71,26 +89,39 @@ function AIMentorV4({ userId }) {
 
     setConversation(prev => [...prev, userMessage]);
     setLoading(true);
+    const userQuestion = currentInput;
     setCurrentInput('');
 
     try {
-      const response = await axios.post('/api/mentor/socratic-v4', {
-        userId,
-        message: currentInput,
-        config,
-        conversationHistory: conversation,
-        hintCount
-      });
+      // Sử dụng prompt ngắn gọn
+      const prompt = createShortPrompt(config, userQuestion);
+
+      const aiResponse = await callGeminiAPI(prompt);
 
       const aiMessage = {
         type: 'ai',
-        data: response.data,
+        data: {
+          message: aiResponse
+        },
         timestamp: new Date()
       };
 
       setConversation(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error:', error);
+      
+      // Fallback khi API lỗi
+      const mockResponse = {
+        message: `Câu hỏi hay đấy! Hãy thử suy nghĩ theo hướng này:\n\n🤔 Em đã thử áp dụng công thức nào chưa?\n\n💡 Gợi ý: Hãy xem lại phần lý thuyết trong sách giáo khoa ${config.bookSet}.\n\n(Lỗi kết nối API, đây là câu trả lời mẫu)`
+      };
+
+      const aiMessage = {
+        type: 'ai',
+        data: mockResponse,
+        timestamp: new Date()
+      };
+
+      setConversation(prev => [...prev, aiMessage]);
     }
     setLoading(false);
   };
@@ -103,17 +134,41 @@ function AIMentorV4({ userId }) {
 
     setLoading(true);
     try {
-      const response = await axios.post('/api/mentor/hint-v4', {
-        userId,
-        config,
-        conversationHistory: conversation,
-        hintLevel: hintCount + 1
-      });
+      // Lấy câu hỏi gần nhất từ conversation
+      const lastUserMessage = [...conversation].reverse().find(msg => msg.type === 'user');
+      const question = lastUserMessage ? lastUserMessage.text : 'câu hỏi hiện tại';
+
+      const hintLevel = hintCount + 1;
+      const hintPrompts = {
+        1: 'Gợi ý rất nhẹ, chỉ hướng học sinh xem lại kiến thức cơ bản',
+        2: 'Gợi ý trung bình, đề cập đến công thức hoặc phương pháp cần dùng',
+        3: 'Gợi ý chi tiết hơn, gợi ý bước đầu tiên cần làm',
+        4: 'Gợi ý gần như lời giải, chỉ thiếu bước tính toán cuối cùng'
+      };
+
+      const prompt = `Bạn là giáo viên ${config.subject} lớp ${config.grade}.
+
+Câu hỏi của học sinh: "${question}"
+
+Đây là lần gợi ý thứ ${hintLevel}/4. ${hintPrompts[hintLevel]}.
+
+Hãy đưa ra gợi ý phù hợp với cấp độ này:
+- Sử dụng emoji 💡
+- Ngắn gọn, dễ hiểu
+- Không đưa ra đáp án hoàn chỉnh
+- Khuyến khích học sinh tự suy nghĩ
+- Nếu có công thức, dùng LaTeX: $công thức$ hoặc $$công thức$$
+
+Chỉ trả lời gợi ý, không cần giải thích thêm.`;
+
+      const aiResponse = await callGeminiAPI(prompt);
 
       const hintMessage = {
         type: 'hint',
-        data: response.data,
-        level: hintCount + 1,
+        data: {
+          message: aiResponse
+        },
+        level: hintLevel,
         timestamp: new Date()
       };
 
@@ -121,6 +176,24 @@ function AIMentorV4({ userId }) {
       setHintCount(prev => prev + 1);
     } catch (error) {
       console.error('Error:', error);
+      
+      // Fallback
+      const hintLevels = [
+        { message: '💡 Gợi ý cấp 1: Hãy xem lại định nghĩa cơ bản trong sách giáo khoa.' },
+        { message: '💡 Gợi ý cấp 2: Công thức liên quan là gì? Hãy viết ra giấy.' },
+        { message: '💡 Gợi ý cấp 3: Thử áp dụng công thức vào bài toán này xem sao.' },
+        { message: '💡 Gợi ý cấp 4: Bước đầu tiên là... (gần như lời giải)' }
+      ];
+
+      const hintMessage = {
+        type: 'hint',
+        data: hintLevels[hintCount] || hintLevels[3],
+        level: hintCount + 1,
+        timestamp: new Date()
+      };
+
+      setConversation(prev => [...prev, hintMessage]);
+      setHintCount(prev => prev + 1);
     }
     setLoading(false);
   };
@@ -132,15 +205,47 @@ function AIMentorV4({ userId }) {
 
     setLoading(true);
     try {
-      const response = await axios.post('/api/mentor/solution-v4', {
-        userId,
-        config,
-        conversationHistory: conversation
-      });
+      // Lấy câu hỏi gần nhất
+      const lastUserMessage = [...conversation].reverse().find(msg => msg.type === 'user');
+      const question = lastUserMessage ? lastUserMessage.text : 'câu hỏi hiện tại';
+
+      const prompt = `Bạn là giáo viên ${config.subject} lớp ${config.grade}, sách ${config.bookSet}.
+
+Câu hỏi: "${question}"
+
+Hãy đưa ra lời giải CHI TIẾT theo cấu trúc:
+
+📖 LỜI GIẢI CHI TIẾT:
+
+Bước 1: [Phân tích đề bài]
+Bước 2: [Xác định công thức/phương pháp]
+Bước 3: [Giải chi tiết từng bước]
+Bước 4: [Kết luận và đáp án]
+
+💡 LƯU Ý:
+- [Những điểm cần chú ý]
+- [Sai lầm thường gặp]
+
+📚 THAM KHẢO:
+- Sách: ${config.bookSet}
+- Môn: ${config.subject} lớp ${config.grade}
+
+Sử dụng LaTeX cho công thức: $công thức$ hoặc $$công thức$$
+Trình bày rõ ràng, dễ hiểu.`;
+
+      const aiResponse = await callGeminiAPI(prompt);
 
       const solutionMessage = {
         type: 'solution',
-        data: response.data,
+        data: {
+          solution: aiResponse,
+          bookReference: {
+            book: `${config.bookSet} - ${config.subject} ${config.grade}`,
+            lesson: 'Xem trong lời giải',
+            chapter: 'Xem trong lời giải',
+            pages: 'Xem trong lời giải'
+          }
+        },
         timestamp: new Date()
       };
 
@@ -148,6 +253,26 @@ function AIMentorV4({ userId }) {
       setCurrentInput('');
     } catch (error) {
       console.error('Error:', error);
+      
+      // Fallback
+      const mockSolution = {
+        solution: `📖 Lời giải chi tiết:\n\nBước 1: Xác định dữ kiện đề bài\nBước 2: Áp dụng công thức phù hợp\nBước 3: Tính toán và kiểm tra\nBước 4: Kết luận\n\n💡 Lưu ý: Đây là lời giải mẫu. Hãy tự làm lại để hiểu sâu hơn!\n\n(Lỗi kết nối API)`,
+        bookReference: {
+          book: `${config.bookSet} - ${config.subject} ${config.grade}`,
+          lesson: 'N/A',
+          chapter: 'N/A',
+          pages: 'N/A'
+        }
+      };
+
+      const solutionMessage = {
+        type: 'solution',
+        data: mockSolution,
+        timestamp: new Date()
+      };
+
+      setConversation(prev => [...prev, solutionMessage]);
+      setCurrentInput('');
     }
     setLoading(false);
   };

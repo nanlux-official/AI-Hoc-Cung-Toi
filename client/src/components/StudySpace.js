@@ -10,10 +10,15 @@ import HealthTracker from './HealthTracker';
 // Cấu hình môn học
 const SUBJECTS = {
   math: { name: 'Toán', color: 'bg-blue-500', lightColor: 'bg-blue-100' },
-  phys: { name: 'Lý', color: 'bg-purple-500', lightColor: 'bg-purple-100' },
-  chem: { name: 'Hóa', color: 'bg-green-500', lightColor: 'bg-green-100' },
-  eng: { name: 'Anh', color: 'bg-orange-500', lightColor: 'bg-orange-100' },
-  lit: { name: 'Văn', color: 'bg-pink-500', lightColor: 'bg-pink-100' }
+  phys: { name: 'Vật Lý', color: 'bg-purple-500', lightColor: 'bg-purple-100' },
+  chem: { name: 'Hóa Học', color: 'bg-green-500', lightColor: 'bg-green-100' },
+  bio: { name: 'Sinh Học', color: 'bg-teal-500', lightColor: 'bg-teal-100' },
+  eng: { name: 'Tiếng Anh', color: 'bg-orange-500', lightColor: 'bg-orange-100' },
+  lit: { name: 'Ngữ Văn', color: 'bg-pink-500', lightColor: 'bg-pink-100' },
+  hist: { name: 'Lịch Sử', color: 'bg-yellow-500', lightColor: 'bg-yellow-100' },
+  geo: { name: 'Địa Lý', color: 'bg-cyan-500', lightColor: 'bg-cyan-100' },
+  civic: { name: 'GDCD', color: 'bg-indigo-500', lightColor: 'bg-indigo-100' },
+  tech: { name: 'Tin Học', color: 'bg-slate-500', lightColor: 'bg-slate-100' }
 };
 
 const ACTIVITIES = {
@@ -821,6 +826,8 @@ function RelaxZoneView() {
 }
 
 function BreathingExercise({ onBack }) {
+  const [userName, setUserName] = useState('');
+  const [showNameInput, setShowNameInput] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState('inhale'); // inhale, hold, exhale
   const [scale, setScale] = useState(1);
@@ -875,6 +882,39 @@ function BreathingExercise({ onBack }) {
         <h3 className="text-3xl font-bold text-slate-800 mb-4">Hít thở 4-7-8</h3>
         <p className="text-slate-600 mb-8">Hít vào 4 giây, giữ 7 giây, thở ra 8 giây</p>
 
+        {showNameInput ? (
+          <div className="mb-8">
+            <p className="text-lg text-slate-700 mb-4">Xin chào! Bạn tên là gì?</p>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Nhập tên của bạn..."
+              className="px-4 py-3 border-2 border-slate-300 rounded-lg w-full max-w-sm mx-auto mb-4 text-center focus:outline-none focus:border-teal-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && userName.trim()) {
+                  setShowNameInput(false);
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                if (userName.trim()) {
+                  setShowNameInput(false);
+                }
+              }}
+              disabled={!userName.trim()}
+              className="px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Bắt đầu
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-lg text-teal-600 font-semibold mb-6">
+              Chào {userName}! Hãy thư giãn cùng tôi nhé 😊
+            </p>
+
         <div className="relative w-64 h-64 mx-auto mb-8">
           <div
             className={`absolute inset-0 rounded-full ${phaseColors[phase]} transition-all duration-1000 ease-in-out`}
@@ -890,16 +930,18 @@ function BreathingExercise({ onBack }) {
           </div>
         </div>
 
-        <button
-          onClick={() => setIsActive(!isActive)}
-          className={`px-8 py-4 rounded-lg font-semibold text-white shadow-lg transition ${
-            isActive
-              ? 'bg-red-500 hover:bg-red-600'
-              : 'bg-gradient-to-r from-teal-500 to-cyan-500'
-          }`}
-        >
-          {isActive ? 'Dừng lại' : 'Bắt đầu ngay'}
-        </button>
+            <button
+              onClick={() => setIsActive(!isActive)}
+              className={`px-8 py-4 rounded-lg font-semibold text-white shadow-lg transition ${
+                isActive
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : 'bg-gradient-to-r from-teal-500 to-cyan-500'
+              }`}
+            >
+              {isActive ? 'Dừng lại' : 'Bắt đầu ngay'}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -914,6 +956,8 @@ const STRETCH_EXERCISES = [
 ];
 
 function StretchExercise({ onBack }) {
+  const [userName, setUserName] = useState('');
+  const [showNameInput, setShowNameInput] = useState(true);
   const [currentExercise, setCurrentExercise] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [isActive, setIsActive] = useState(false);
@@ -963,7 +1007,40 @@ function StretchExercise({ onBack }) {
       <div className="bg-white/80 backdrop-blur-md rounded-2xl p-12 shadow-lg text-center">
         <h3 className="text-3xl font-bold text-slate-800 mb-8">Vận động nhẹ</h3>
 
-        <div className="mb-8">
+        {showNameInput ? (
+          <div className="mb-8">
+            <p className="text-lg text-slate-700 mb-4">Xin chào! Bạn tên là gì?</p>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Nhập tên của bạn..."
+              className="px-4 py-3 border-2 border-slate-300 rounded-lg w-full max-w-sm mx-auto mb-4 text-center focus:outline-none focus:border-orange-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && userName.trim()) {
+                  setShowNameInput(false);
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                if (userName.trim()) {
+                  setShowNameInput(false);
+                }
+              }}
+              disabled={!userName.trim()}
+              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Bắt đầu
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-lg text-orange-600 font-semibold mb-6">
+              Chào {userName}! Cùng vận động nhẹ nhàng nhé 💪
+            </p>
+
+            <div className="mb-8">
           <div className="text-6xl font-bold text-orange-600 mb-4">{timeLeft}s</div>
           <div className="text-2xl font-bold text-slate-800 mb-2">
             {exercises[currentExercise].name}
@@ -984,20 +1061,22 @@ function StretchExercise({ onBack }) {
           ))}
         </div>
 
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={isActive ? () => setIsActive(false) : handleStart}
-            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition"
-          >
-            {isActive ? 'Tạm dừng' : 'Bắt đầu'}
-          </button>
-          <button
-            onClick={handleReset}
-            className="px-8 py-4 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
-          >
-            Đặt lại
-          </button>
-        </div>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={isActive ? () => setIsActive(false) : handleStart}
+                className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition"
+              >
+                {isActive ? 'Tạm dừng' : 'Bắt đầu'}
+              </button>
+              <button
+                onClick={handleReset}
+                className="px-8 py-4 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
+              >
+                Đặt lại
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
