@@ -6,8 +6,8 @@ import { InlineMath, BlockMath } from 'react-katex';
 import { provinces, districts, schools, subjects, grades, bookSets, teachersBySubject } from '../data/schoolData';
 import { createShortPrompt, createHintPrompt, createSolutionPrompt } from './AIMentorV4_short';
 
-// Gemini API Configuration - sử dụng backend proxy
-const GEMINI_PROXY_URL = '/api/gemini/generate';
+// Gemini API Configuration - sử dụng Vercel Serverless Function
+const GEMINI_PROXY_URL = '/api/gemini';
 
 function AIMentorV4({ userId }) {
   // Cấu hình học sinh

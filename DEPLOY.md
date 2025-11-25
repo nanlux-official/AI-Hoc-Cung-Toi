@@ -62,6 +62,25 @@ Sau khi setup xong, mỗi lần bạn push code lên GitHub:
 - Backend API sẽ chạy dưới dạng Serverless Functions
 - Gemini API key đã được cấu hình trong Environment Variables
 
+## Backend trên Vercel
+
+Backend Express sẽ chạy như **Serverless Functions**:
+- ✅ `/api/gemini/*` - Gemini API proxy (hoạt động)
+- ✅ `/api/mentor/*` - AI Mentor routes (hoạt động)
+- ✅ `/api/health/*` - Health tracker routes (hoạt động)
+
+Mỗi API request sẽ khởi động một serverless function instance.
+
+## Kiểm tra Backend hoạt động
+
+Sau khi deploy, test API:
+```bash
+curl https://your-app.vercel.app/api/gemini/generate \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"Hello"}'
+```
+
 ## Troubleshooting
 
 Nếu build lỗi:
