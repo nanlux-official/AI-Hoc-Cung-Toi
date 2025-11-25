@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 function Dashboard({ userId }) {
   const [stats, setStats] = useState(null);
@@ -10,12 +9,14 @@ function Dashboard({ userId }) {
   }, []);
 
   const fetchStats = async () => {
-    try {
-      const response = await axios.get(`/api/tracker/report/${userId}`);
-      setStats(response.data);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
+    // Mock data vì đã xóa tracker API
+    setStats({
+      totalTime: 120,
+      sessionsCount: 8,
+      improvements: ['Toán', 'Hóa học'],
+      message: 'Bạn đã học tập rất chăm chỉ tuần này! Tiếp tục phát huy nhé! 🎉',
+      suggestion: 'Hãy thử sử dụng AI Mentor V4 để cải thiện kỹ năng tư duy phản biện.'
+    });
   };
 
   return (
@@ -55,12 +56,12 @@ function Dashboard({ userId }) {
       )}
 
       <div className="card">
-        <h3>🎯 6 Module Học Tập</h3>
-        <div className="grid">
+        <h3>🎯 4 Module Học Tập</h3>
+        <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
           <ModuleCard 
             icon="🧠" 
-            title="AI Mentor" 
-            desc="Học qua phản vấn Socratic"
+            title="AI Mentor V4" 
+            desc="Học qua phương pháp Socratic với 4 cấp gợi ý"
             link="/mentor"
           />
           <ModuleCard 
@@ -70,28 +71,16 @@ function Dashboard({ userId }) {
             link="/video"
           />
           <ModuleCard 
-            icon="🏆" 
-            title="Challenge Mode" 
-            desc="Thử thách phản biện"
-            link="/challenge"
-          />
-          <ModuleCard 
-            icon="📈" 
-            title="Learning Tracker" 
-            desc="Theo dõi tiến độ"
-            link="/tracker"
-          />
-          <ModuleCard 
             icon="💪" 
             title="Health Tracker" 
-            desc="Sức khỏe học tập"
+            desc="Sức khỏe và tập trung học tập"
             link="/health"
           />
           <ModuleCard 
-            icon="🔍" 
-            title="AI Reflect" 
-            desc="Phản hồi thông minh"
-            link="/reflect"
+            icon="📊" 
+            title="Dashboard" 
+            desc="Tổng quan và thống kê"
+            link="/"
           />
         </div>
       </div>
