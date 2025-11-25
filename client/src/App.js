@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './App.css';
 import AIMentor from './components/AIMentor';
+import AIMentorV4 from './components/AIMentorV4';
 import AIReflect from './components/AIReflect';
 import ChallengeMode from './components/ChallengeMode';
 import LearningTracker from './components/LearningTracker';
@@ -22,6 +23,7 @@ function App() {
           <div className="nav-links">
             <Link to="/">Dashboard</Link>
             <Link to="/mentor">AI Mentor</Link>
+            <Link to="/mentor-v4">AI Mentor V4 🆕</Link>
             <Link to="/video">Video Learning</Link>
             <Link to="/challenge">Challenge</Link>
             <Link to="/tracker">Tiến Độ</Link>
@@ -33,6 +35,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard userId={userId} />} />
             <Route path="/mentor" element={<AIMentor userId={userId} />} />
+            <Route path="/mentor-v4" element={<AIMentorV4 userId={userId} />} />
             <Route path="/reflect" element={<AIReflect userId={userId} />} />
             <Route path="/challenge" element={<ChallengeMode userId={userId} />} />
             <Route path="/tracker" element={<LearningTracker userId={userId} />} />

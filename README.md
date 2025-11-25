@@ -9,6 +9,17 @@ Nền tảng học tập thông minh với 6 module AI hỗ trợ học sinh ph�
 - Gợi mở tư duy phản biện
 - Giúp học sinh tự khám phá kiến thức
 
+#### 🆕 AI Mentor V4 - Phiên Bản Nâng Cao
+- ✅ **Form cấu hình đầy đủ:** Tên, trường, lớp, môn, bộ sách, giáo viên
+- ✅ **Hệ thống 4 luật gợi ý:** Từ định hướng tổng quát đến gần như lời giải
+- ✅ **Tích hợp LaTeX/KaTeX:** Hiển thị công thức toán học đẹp mắt
+- ✅ **Lịch sử học tập:** Lưu và xem lại các phiên học
+- ✅ **Cheat code M10:** Xem lời giải nhanh khi cần
+- ✅ **Trích dẫn sách giáo khoa:** Tham khảo SGK theo bộ sách đã chọn
+
+👉 **Truy cập:** `/mentor-v4` để trải nghiệm phiên bản mới!  
+📖 **Hướng dẫn chi tiết:** Xem file `AI_MENTOR_V4_GUIDE.md`
+
 ### 2. 🔍 AI Reflect - Phản Hồi Thông Minh
 - Phân tích lỗi tư duy, không chỉ lỗi kết quả
 - Đưa ra hướng điều chỉnh cụ thể
