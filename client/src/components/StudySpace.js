@@ -905,17 +905,19 @@ function BreathingExercise({ onBack }) {
   );
 }
 
+// Move exercises array outside component to avoid re-creation
+const STRETCH_EXERCISES = [
+  { name: 'Xoay cổ', duration: 30, desc: 'Xoay cổ nhẹ nhàng theo chiều kim đồng hồ' },
+  { name: 'Giãn vai', duration: 30, desc: 'Nâng vai lên rồi thả xuống' },
+  { name: 'Vặn người', duration: 30, desc: 'Ngồi thẳng, vặn người sang hai bên' },
+  { name: 'Duỗi tay', duration: 30, desc: 'Duỗi thẳng tay ra trước, kéo về phía ngực' }
+];
+
 function StretchExercise({ onBack }) {
   const [currentExercise, setCurrentExercise] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [isActive, setIsActive] = useState(false);
-
-  const exercises = [
-    { name: 'Xoay cổ', duration: 30, desc: 'Xoay cổ nhẹ nhàng theo chiều kim đồng hồ' },
-    { name: 'Giãn vai', duration: 30, desc: 'Nâng vai lên rồi thả xuống' },
-    { name: 'Vặn người', duration: 30, desc: 'Ngồi thẳng, vặn người sang hai bên' },
-    { name: 'Duỗi tay', duration: 30, desc: 'Duỗi thẳng tay ra trước, kéo về phía ngực' }
-  ];
+  const exercises = STRETCH_EXERCISES;
 
   useEffect(() => {
     if (!isActive || timeLeft === 0) return;
