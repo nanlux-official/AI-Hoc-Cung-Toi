@@ -1,48 +1,5 @@
 .App {
   min-height: 100vh;
-  background: #f8f9fa;
-}
-
-.navbar {
-  background: #ffffff;
-  padding: 1.2rem 3rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.nav-brand h1 {
-  color: #2c3e50;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.nav-links {
-  display: flex;
-  gap: 2.5rem;
-}
-
-.nav-links a {
-  color: #6c757d;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: color 0.2s;
-  padding: 0.5rem 0;
-  border-bottom: 2px solid transparent;
-}
-
-.nav-links a:hover {
-  color: #2c3e50;
-  border-bottom-color: #3498db;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 2rem;
 }
 
 .card {

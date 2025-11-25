@@ -11,12 +11,10 @@ app.use(express.json());
 
 // Import routes
 const aiMentorRoutes = require('./routes/aiMentor');
-const videoRoutes = require('./routes/video');
 const healthRoutes = require('./routes/health');
 
 // API routes
 app.use('/api/mentor', aiMentorRoutes);
-app.use('/api/video', videoRoutes);
 app.use('/api/health', healthRoutes);
 
 // Serve static files in production
