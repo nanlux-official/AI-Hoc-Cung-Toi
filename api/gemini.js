@@ -2,7 +2,7 @@
 const axios = require('axios');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 if (!GEMINI_API_KEY) {
   console.error('⚠️  GEMINI_API_KEY is not set in environment variables!');
@@ -25,13 +25,26 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { prompt } = req.body;
+    const { prompt, responseFormat } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
     console.log('Calling Gemini API with prompt:', prompt.substring(0, 100) + '...');
+
+    // Cấu hình generation config
+    const generationConfig = {
+      temperature: 0.7,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 2048,
+    };
+
+    // Nếu yêu cầu JSON format, thêm responseMimeType
+    if (responseFormat === 'json') {
+      generationConfig.responseMimeType = 'application/json';
+    }
 
     const response = await axios.post(
       `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
@@ -41,12 +54,7 @@ module.exports = async (req, res) => {
             text: prompt
           }]
         }],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
+        generationConfig
       },
       {
         headers: {

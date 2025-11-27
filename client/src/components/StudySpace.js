@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { 
   Clock, Calendar, BookOpen, Coffee, Target, 
   Plus, X, Play, Pause, RotateCcw, Wind, Dumbbell,
-  Heart
+  Heart, Brain
 } from 'lucide-react';
 import AIMentorV4 from './AIMentorV4';
 import HealthTracker from './HealthTracker';
+import MentalHealthMentor from './MentalHealthMentor';
 
 // Cấu hình môn học
 const SUBJECTS = {
@@ -142,6 +143,12 @@ function StudySpace() {
               <HealthTracker userId="user123" />
             </div>
           )}
+          
+          {activeTab === 'mental' && (
+            <div className="h-full rounded-2xl shadow-lg overflow-hidden">
+              <MentalHealthMentor />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -157,7 +164,8 @@ function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGl
     { id: 'pomodoro', icon: Clock, label: 'Pomodoro' },
     { id: 'relax', icon: Coffee, label: 'Thư giãn' },
     { id: 'mentor', icon: BookOpen, label: 'AI Mentor' },
-    { id: 'health', icon: Heart, label: 'Sức khỏe' }
+    { id: 'health', icon: Heart, label: 'Sức khỏe' },
+    { id: 'mental', icon: Brain, label: 'Tâm lý' }
   ];
 
   return (

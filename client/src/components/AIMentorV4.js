@@ -10,28 +10,60 @@ import { createShortPrompt, createHintPrompt, createSolutionPrompt } from './AIM
 const GEMINI_PROXY_URL = '/api/gemini/generate';
 
 function AIMentorV4({ userId }) {
-  // Cấu hình học sinh
-  const [config, setConfig] = useState({
-    studentName: '',
-    province: 'Quảng Ngãi',
-    district: '',
-    school: '',
-    grade: '11',
-    subject: 'Hóa học',
-    bookSet: 'Kết nối tri thức',
-    teacherName: ''
+  // Load config from localStorage
+  const [config, setConfig] = useState(() => {
+    const saved = localStorage.getItem('aiMentorConfig');
+    return saved ? JSON.parse(saved) : {
+      studentName: '',
+      province: 'Quảng Ngãi',
+      district: '',
+      school: '',
+      grade: '11',
+      subject: 'Hóa học',
+      bookSet: 'Kết nối tri thức',
+      teacherName: ''
+    };
   });
   
-  const [showConfig, setShowConfig] = useState(true);
-  const [conversation, setConversation] = useState([]);
+  const [showConfig, setShowConfig] = useState(() => {
+    const saved = localStorage.getItem('aiMentorConfig');
+    return !saved || !JSON.parse(saved).studentName;
+  });
+  
+  const [conversation, setConversation] = useState(() => {
+    const saved = localStorage.getItem('aiMentorConversation');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
   const [currentInput, setCurrentInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [hintCount, setHintCount] = useState(0);
-  const [sessionHistory, setSessionHistory] = useState([]);
+  
+  const [sessionHistory, setSessionHistory] = useState(() => {
+    const saved = localStorage.getItem('aiMentorHistory');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
   const [showHistory, setShowHistory] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [summary, setSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
   
   const chatEndRef = useRef(null);
   const MAX_HINTS = 4;
+
+  // Save to localStorage
+  useEffect(() => {
+    localStorage.setItem('aiMentorConfig', JSON.stringify(config));
+  }, [config]);
+
+  useEffect(() => {
+    localStorage.setItem('aiMentorConversation', JSON.stringify(conversation));
+  }, [conversation]);
+
+  useEffect(() => {
+    localStorage.setItem('aiMentorHistory', JSON.stringify(sessionHistory));
+  }, [sessionHistory]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -316,6 +348,59 @@ LaTeX: $công thức$. Ngắn gọn, rõ ràng.`;
     setShowHistory(false);
   };
 
+  const handleGenerateSummary = async () => {
+    if (conversation.length < 2) {
+      alert('Chưa có đủ nội dung để tóm tắt!');
+      return;
+    }
+
+    setLoadingSummary(true);
+    setShowSummary(true);
+
+    try {
+      // Tạo prompt để AI tóm tắt và tạo sơ đồ
+      const conversationText = conversation
+        .filter(msg => msg.type === 'user' || msg.type === 'ai')
+        .map(msg => `${msg.type === 'user' ? 'Học sinh' : 'AI'}: ${msg.text || msg.data?.message || ''}`)
+        .join('\n');
+
+      const prompt = `Hãy phân tích cuộc trò chuyện học tập sau và tạo:
+
+1. TÓM TẮT (3-5 điểm chính đã học)
+2. SƠ ĐỒ TƯ DUY (dạng text, dùng - và indent)
+
+Cuộc trò chuyện:
+${conversationText}
+
+Môn: ${config.subject} - Lớp ${config.grade}
+
+Trả lời theo format:
+
+📝 TÓM TẮT:
+- [Điểm 1]
+- [Điểm 2]
+...
+
+🧠 SƠ ĐỒ TƯ DUY:
+[Chủ đề chính]
+  - [Khái niệm 1]
+    - [Chi tiết]
+  - [Khái niệm 2]
+    - [Chi tiết]
+
+💡 GỢI Ý HỌC TIẾP:
+- [Gợi ý 1]
+- [Gợi ý 2]`;
+
+      const response = await callGeminiAPI(prompt);
+      setSummary(response);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      setSummary('❌ Lỗi khi tạo tóm tắt. Vui lòng thử lại!');
+    }
+    setLoadingSummary(false);
+  };
+
   return (
     <div className="ai-mentor-v4">
       {showConfig ? (
@@ -334,7 +419,16 @@ LaTeX: $công thức$. Ngắn gọn, rõ ràng.`;
             onReset={handleReset}
             onShowHistory={() => setShowHistory(!showHistory)}
             onShowConfig={() => setShowConfig(true)}
+            onShowSummary={handleGenerateSummary}
           />
+
+          {showSummary && (
+            <SummaryPanel 
+              summary={summary}
+              loading={loadingSummary}
+              onClose={() => setShowSummary(false)}
+            />
+          )}
 
           {showHistory && (
             <HistoryPanel 
@@ -450,7 +544,7 @@ function ConfigPanel({ config, setConfig, onStart }) {
 }
 
 // Các component khác sẽ được thêm vào file CSS
-function Header({ config, hintCount, maxHints, onNewTopic, onReset, onShowHistory, onShowConfig }) {
+function Header({ config, hintCount, maxHints, onNewTopic, onReset, onShowHistory, onShowConfig, onShowSummary }) {
   return (
     <div className="mentor-header-v4">
       <div className="header-info">
@@ -461,6 +555,7 @@ function Header({ config, hintCount, maxHints, onNewTopic, onReset, onShowHistor
         <span className="hint-counter">💡 Gợi ý: {hintCount}/{maxHints}</span>
       </div>
       <div className="header-actions">
+        <button onClick={onShowSummary} title="Tóm tắt & Sơ đồ">📊</button>
         <button onClick={onShowHistory} title="Lịch sử">📚</button>
         <button onClick={onNewTopic} title="Chủ đề mới">➕</button>
         <button onClick={onReset} title="Làm mới">🔄</button>
@@ -651,6 +746,30 @@ function InputArea({ currentInput, setCurrentInput, onSend, onRequestHint, onSho
         <button onClick={onSend} disabled={loading || !currentInput.trim()}>
           Gửi 📤
         </button>
+      </div>
+    </div>
+  );
+}
+
+function SummaryPanel({ summary, loading, onClose }) {
+  return (
+    <div className="history-panel">
+      <div className="history-header">
+        <h3>📊 Tóm tắt & Sơ đồ tư duy</h3>
+        <button onClick={onClose}>✕</button>
+      </div>
+      <div className="history-list" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <div className="loading">Đang phân tích cuộc trò chuyện...</div>
+          </div>
+        ) : summary ? (
+          <div style={{ padding: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>
+            {renderTextWithLatex(summary)}
+          </div>
+        ) : (
+          <p>Chưa có tóm tắt</p>
+        )}
       </div>
     </div>
   );
