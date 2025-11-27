@@ -208,14 +208,13 @@ Chỉ trả lời gợi ý, không cần giải thích thêm.`;
       const lastUserMessage = [...conversation].reverse().find(msg => msg.type === 'user');
       const question = lastUserMessage ? lastUserMessage.text : 'câu hỏi hiện tại';
 
-      const prompt = `Bạn là giáo viên ${config.subject} lớp ${config.grade}, sách ${config.bookSet}.
+      const prompt = `Bạn là giáo viên ${config.subject} lớp ${config.grade}, sách ${config.bookSet} (Chương trình phổ thông 2018).
 
 Câu hỏi: "${question}"
 
-Hãy đưa ra lời giải CHI TIẾT theo cấu trúc:
+Hãy đưa ra lời giải CHI TIẾT và cuối cùng gợi ý phần sách giáo khoa cần xem.
 
 📖 LỜI GIẢI CHI TIẾT:
-
 Bước 1: [Phân tích đề bài]
 Bước 2: [Xác định công thức/phương pháp]
 Bước 3: [Giải chi tiết từng bước]
@@ -225,14 +224,22 @@ Bước 4: [Kết luận và đáp án]
 - [Những điểm cần chú ý]
 - [Sai lầm thường gặp]
 
-📚 THAM KHẢO:
-- Sách: ${config.bookSet}
-- Môn: ${config.subject} lớp ${config.grade}
+📚 THAM KHẢO SGK:
+Dựa vào câu hỏi, hãy gợi ý cụ thể:
+[BÀI]: Tên bài học trong SGK
+[CHƯƠNG]: Chương nào
+[TRANG]: Khoảng trang (ước tính)
+[CHỦ ĐỀ]: Kiến thức cần xem lại
 
-Sử dụng LaTeX cho công thức: $công thức$ hoặc $$công thức$$
-Trình bày rõ ràng, dễ hiểu.`;
+LaTeX: $công thức$. Ngắn gọn, rõ ràng.`;
 
       const aiResponse = await callGeminiAPI(prompt);
+
+      // Parse thông tin sách từ response
+      const lessonMatch = aiResponse.match(/\[BÀI\]:\s*(.+)/i);
+      const chapterMatch = aiResponse.match(/\[CHƯƠNG\]:\s*(.+)/i);
+      const pagesMatch = aiResponse.match(/\[TRANG\]:\s*(.+)/i);
+      const topicsMatch = aiResponse.match(/\[CHỦ ĐỀ\]:\s*(.+)/i);
 
       const solutionMessage = {
         type: 'solution',
@@ -241,8 +248,10 @@ Trình bày rõ ràng, dễ hiểu.`;
           bookReference: {
             book: `Sách giáo khoa ${config.subject} ${config.grade} - ${config.bookSet}`,
             program: 'Chương trình Giáo dục phổ thông 2018',
-            publisher: 'Nhà xuất bản Giáo dục Việt Nam',
-            note: 'Tham khảo thêm sách bài tập và tài liệu bổ trợ'
+            lesson: lessonMatch ? lessonMatch[1].trim() : 'Xem trong lời giải',
+            chapter: chapterMatch ? chapterMatch[1].trim() : 'Xem trong lời giải',
+            pages: pagesMatch ? pagesMatch[1].trim() : 'Xem trong lời giải',
+            topics: topicsMatch ? topicsMatch[1].trim() : 'Xem trong lời giải'
           }
         },
         timestamp: new Date()
@@ -582,8 +591,10 @@ function Message({ message }) {
             <h4>📖 Tham khảo sách giáo khoa:</h4>
             <p><strong>Sách:</strong> {message.data.bookReference.book}</p>
             <p><strong>Chương trình:</strong> {message.data.bookReference.program}</p>
-            <p><strong>Nhà xuất bản:</strong> {message.data.bookReference.publisher}</p>
-            <p><strong>Ghi chú:</strong> {message.data.bookReference.note}</p>
+            <p><strong>Bài học:</strong> {message.data.bookReference.lesson}</p>
+            <p><strong>Chương:</strong> {message.data.bookReference.chapter}</p>
+            <p><strong>Trang:</strong> {message.data.bookReference.pages}</p>
+            <p><strong>Chủ đề liên quan:</strong> {message.data.bookReference.topics}</p>
           </div>
         )}
       </div>
