@@ -482,6 +482,25 @@ function ChatArea({ conversation, loading, chatEndRef }) {
   );
 }
 
+
+// Hàm chuyển Markdown sang HTML
+function parseMarkdown(text) {
+  if (!text) return '';
+  
+  // Bold: **text** hoặc __text__
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+  
+  // Italic: *text* hoặc _text_ (nhưng không phải **)
+  text = text.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+  text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+  
+  // Line breaks
+  text = text.replace(/\n/g, '<br/>');
+  
+  return text;
+}
+
 // Hàm render text với LaTeX
 function renderTextWithLatex(text) {
   if (!text) return null;
@@ -532,7 +551,8 @@ function renderTextWithLatex(text) {
   // Render các phần
   return parts.map((part, idx) => {
     if (part.type === 'text') {
-      return <span key={idx} dangerouslySetInnerHTML={{ __html: part.content.replace(/\n/g, '<br/>') }} />;
+      const htmlContent = parseMarkdown(part.content);
+      return <span key={idx} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
     } else if (part.type === 'inline-math') {
       try {
         return <InlineMath key={idx} math={part.content} />;
