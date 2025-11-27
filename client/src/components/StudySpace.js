@@ -279,11 +279,21 @@ function GoalModal({ subjectTargets, setSubjectTargets, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl p-8 max-w-md w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold">Đặt mục tiêu học tập</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <h3 className="text-2xl font-bold text-slate-800">Đặt mục tiêu học tập</h3>
+          <button 
+            onClick={onClose} 
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full p-2 transition"
+            title="Đóng"
+          >
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -291,23 +301,42 @@ function GoalModal({ subjectTargets, setSubjectTargets, onClose }) {
         <div className="space-y-4">
           {Object.entries(SUBJECTS).map(([key, subject]) => (
             <div key={key}>
-              <label className="block text-sm font-medium mb-2">{subject.name} (phút/ngày)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                {subject.name} (phút/ngày)
+              </label>
               <input
                 type="number"
+                min="0"
+                max="1440"
+                step="5"
                 value={tempTargets[key] || 0}
                 onChange={(e) => setTempTargets({ ...tempTargets, [key]: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSave();
+                  }
+                }}
+                className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none transition"
+                placeholder="0"
               />
             </div>
           ))}
         </div>
 
-        <button
-          onClick={handleSave}
-          className="mt-6 w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition"
-        >
-          Lưu mục tiêu
-        </button>
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition"
+          >
+            Lưu mục tiêu
+          </button>
+        </div>
       </div>
     </div>
   );
