@@ -2,8 +2,12 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyAPfGgFaHYKqag_UzDJzROgDXRLtiIIhfI';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+if (!GEMINI_API_KEY) {
+  console.error('⚠️  GEMINI_API_KEY is not set in environment variables!');
+}
 
 // Proxy endpoint for Gemini API
 router.post('/generate', async (req, res) => {
