@@ -31,11 +31,40 @@ const MOODS = ['😢', '😐', '🙂', '😄'];
 
 function StudySpace() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [dailyLogs, setDailyLogs] = useState([]);
-  const [schedule, setSchedule] = useState({});
-  const [subjectTargets, setSubjectTargets] = useState({});
-  const [globalTime, setGlobalTime] = useState(0);
+  const [dailyLogs, setDailyLogs] = useState(() => {
+    const saved = localStorage.getItem('studyLogs');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [schedule, setSchedule] = useState(() => {
+    const saved = localStorage.getItem('studySchedule');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [subjectTargets, setSubjectTargets] = useState(() => {
+    const saved = localStorage.getItem('subjectTargets');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [globalTime, setGlobalTime] = useState(() => {
+    const saved = localStorage.getItem('globalTime');
+    return saved ? parseInt(saved) : 0;
+  });
   const [isGlobalRunning, setIsGlobalRunning] = useState(false);
+
+  // Save to localStorage whenever data changes
+  useEffect(() => {
+    localStorage.setItem('studyLogs', JSON.stringify(dailyLogs));
+  }, [dailyLogs]);
+
+  useEffect(() => {
+    localStorage.setItem('studySchedule', JSON.stringify(schedule));
+  }, [schedule]);
+
+  useEffect(() => {
+    localStorage.setItem('subjectTargets', JSON.stringify(subjectTargets));
+  }, [subjectTargets]);
+
+  useEffect(() => {
+    localStorage.setItem('globalTime', globalTime.toString());
+  }, [globalTime]);
 
   // Global Timer
   useEffect(() => {
@@ -859,11 +888,15 @@ function BreathingExercise({ onBack }) {
   const [phase, setPhase] = useState('inhale');
   const [scale, setScale] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
-  const [durations, setDurations] = useState({
-    inhale: 4,
-    hold: 7,
-    exhale: 8
+  const [durations, setDurations] = useState(() => {
+    const saved = localStorage.getItem('breathingDurations');
+    return saved ? JSON.parse(saved) : { inhale: 4, hold: 7, exhale: 8 };
   });
+
+  // Save breathing durations to localStorage
+  useEffect(() => {
+    localStorage.setItem('breathingDurations', JSON.stringify(durations));
+  }, [durations]);
 
   useEffect(() => {
     if (!isActive) return;
@@ -1008,12 +1041,20 @@ function StretchExercise({ onBack }) {
   const [timeLeft, setTimeLeft] = useState(30);
   const [isActive, setIsActive] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [exercises, setExercises] = useState([
-    { name: 'Xoay cổ', duration: 30, desc: 'Xoay cổ nhẹ nhàng theo chiều kim đồng hồ' },
-    { name: 'Giãn vai', duration: 30, desc: 'Nâng vai lên rồi thả xuống' },
-    { name: 'Vặn người', duration: 30, desc: 'Ngồi thẳng, vặn người sang hai bên' },
-    { name: 'Duỗi tay', duration: 30, desc: 'Duỗi thẳng tay ra trước, kéo về phía ngực' }
-  ]);
+  const [exercises, setExercises] = useState(() => {
+    const saved = localStorage.getItem('stretchExercises');
+    return saved ? JSON.parse(saved) : [
+      { name: 'Xoay cổ', duration: 30, desc: 'Xoay cổ nhẹ nhàng theo chiều kim đồng hồ' },
+      { name: 'Giãn vai', duration: 30, desc: 'Nâng vai lên rồi thả xuống' },
+      { name: 'Vặn người', duration: 30, desc: 'Ngồi thẳng, vặn người sang hai bên' },
+      { name: 'Duỗi tay', duration: 30, desc: 'Duỗi thẳng tay ra trước, kéo về phía ngực' }
+    ];
+  });
+
+  // Save stretch exercises to localStorage
+  useEffect(() => {
+    localStorage.setItem('stretchExercises', JSON.stringify(exercises));
+  }, [exercises]);
 
   useEffect(() => {
     if (!isActive || timeLeft === 0) return;
