@@ -1116,29 +1116,48 @@ function StretchExercise({ onBack }) {
 
         <div className="flex gap-2 justify-center mb-8">
           {exercises.map((_, idx) => (
-            <div
+            <button
               key={idx}
-              className={`h-2 w-12 rounded-full transition ${
+              onClick={() => {
+                setCurrentExercise(idx);
+                setTimeLeft(exercises[idx].duration);
+                setIsActive(false);
+              }}
+              className={`h-2 w-12 rounded-full transition cursor-pointer hover:opacity-80 ${
                 idx === currentExercise ? 'bg-orange-500' : 'bg-slate-200'
               }`}
+              title={`Động tác ${idx + 1}: ${exercises[idx].name}`}
             />
           ))}
         </div>
 
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={isActive ? () => setIsActive(false) : handleStart}
-                className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition"
-              >
-                {isActive ? 'Tạm dừng' : 'Bắt đầu'}
-              </button>
-              <button
-                onClick={handleReset}
-                className="px-8 py-4 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
-              >
-                Đặt lại
-              </button>
-            </div>
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={isActive ? () => setIsActive(false) : handleStart}
+            className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition"
+          >
+            {isActive ? 'Tạm dừng' : 'Bắt đầu'}
+          </button>
+          <button
+            onClick={() => {
+              if (currentExercise < exercises.length - 1) {
+                setCurrentExercise(currentExercise + 1);
+                setTimeLeft(exercises[currentExercise + 1].duration);
+                setIsActive(false);
+              }
+            }}
+            disabled={currentExercise >= exercises.length - 1}
+            className="px-8 py-4 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Tiếp theo →
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-8 py-4 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
+          >
+            Đặt lại
+          </button>
+        </div>
       </div>
     </div>
   );
