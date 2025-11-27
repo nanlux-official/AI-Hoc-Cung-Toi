@@ -239,10 +239,10 @@ Trình bày rõ ràng, dễ hiểu.`;
         data: {
           solution: aiResponse,
           bookReference: {
-            book: `${config.bookSet} - ${config.subject} ${config.grade}`,
-            lesson: 'Xem trong lời giải',
-            chapter: 'Xem trong lời giải',
-            pages: 'Xem trong lời giải'
+            book: `Sách giáo khoa ${config.subject} ${config.grade} - ${config.bookSet}`,
+            program: 'Chương trình Giáo dục phổ thông 2018',
+            publisher: 'Nhà xuất bản Giáo dục Việt Nam',
+            note: 'Tham khảo thêm sách bài tập và tài liệu bổ trợ'
           }
         },
         timestamp: new Date()
@@ -257,10 +257,10 @@ Trình bày rõ ràng, dễ hiểu.`;
       const mockSolution = {
         solution: `📖 Lời giải chi tiết:\n\nBước 1: Xác định dữ kiện đề bài\nBước 2: Áp dụng công thức phù hợp\nBước 3: Tính toán và kiểm tra\nBước 4: Kết luận\n\n💡 Lưu ý: Đây là lời giải mẫu. Hãy tự làm lại để hiểu sâu hơn!\n\n(Lỗi kết nối API)`,
         bookReference: {
-          book: `${config.bookSet} - ${config.subject} ${config.grade}`,
-          lesson: 'N/A',
-          chapter: 'N/A',
-          pages: 'N/A'
+          book: `Sách giáo khoa ${config.subject} ${config.grade} - ${config.bookSet}`,
+          program: 'Chương trình Giáo dục phổ thông 2018',
+          publisher: 'Nhà xuất bản Giáo dục Việt Nam',
+          note: 'Tham khảo thêm sách bài tập và tài liệu bổ trợ'
         }
       };
 
@@ -580,10 +580,10 @@ function Message({ message }) {
         {message.data.bookReference && (
           <div className="book-reference">
             <h4>📖 Tham khảo sách giáo khoa:</h4>
-            <p><strong>Bài:</strong> {message.data.bookReference.lesson}</p>
-            <p><strong>Chương:</strong> {message.data.bookReference.chapter}</p>
-            <p><strong>Trang:</strong> {message.data.bookReference.pages}</p>
             <p><strong>Sách:</strong> {message.data.bookReference.book}</p>
+            <p><strong>Chương trình:</strong> {message.data.bookReference.program}</p>
+            <p><strong>Nhà xuất bản:</strong> {message.data.bookReference.publisher}</p>
+            <p><strong>Ghi chú:</strong> {message.data.bookReference.note}</p>
           </div>
         )}
       </div>
