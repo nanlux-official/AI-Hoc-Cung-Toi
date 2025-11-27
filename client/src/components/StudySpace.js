@@ -855,19 +855,23 @@ function RelaxZoneView() {
 }
 
 function BreathingExercise({ onBack }) {
-  const [userName, setUserName] = useState('');
-  const [showNameInput, setShowNameInput] = useState(true);
   const [isActive, setIsActive] = useState(false);
-  const [phase, setPhase] = useState('inhale'); // inhale, hold, exhale
+  const [phase, setPhase] = useState('inhale');
   const [scale, setScale] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [durations, setDurations] = useState({
+    inhale: 4,
+    hold: 7,
+    exhale: 8
+  });
 
   useEffect(() => {
     if (!isActive) return;
 
     const phases = [
-      { name: 'inhale', duration: 4000, scale: 1.5, color: 'teal' },
-      { name: 'hold', duration: 7000, scale: 1.5, color: 'indigo' },
-      { name: 'exhale', duration: 8000, scale: 1, color: 'slate' }
+      { name: 'inhale', duration: durations.inhale * 1000, scale: 1.5, color: 'teal' },
+      { name: 'hold', duration: durations.hold * 1000, scale: 1.5, color: 'indigo' },
+      { name: 'exhale', duration: durations.exhale * 1000, scale: 1, color: 'slate' }
     ];
 
     let currentPhaseIndex = 0;
@@ -884,7 +888,7 @@ function BreathingExercise({ onBack }) {
     };
 
     runPhase();
-  }, [isActive]);
+  }, [isActive, durations]);
 
   const phaseLabels = {
     inhale: 'Hít vào',
@@ -908,41 +912,58 @@ function BreathingExercise({ onBack }) {
       </button>
 
       <div className="bg-white/80 backdrop-blur-md rounded-2xl p-12 shadow-lg text-center">
-        <h3 className="text-3xl font-bold text-slate-800 mb-4">Hít thở 4-7-8</h3>
-        <p className="text-slate-600 mb-8">Hít vào 4 giây, giữ 7 giây, thở ra 8 giây</p>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-3xl font-bold text-slate-800">Hít thở {durations.inhale}-{durations.hold}-{durations.exhale}</h3>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 hover:bg-slate-100 rounded-lg transition"
+            title="Cài đặt"
+          >
+            ⚙️
+          </button>
+        </div>
+        <p className="text-slate-600 mb-8">Hít vào {durations.inhale} giây, giữ {durations.hold} giây, thở ra {durations.exhale} giây</p>
 
-        {showNameInput ? (
-          <div className="mb-8">
-            <p className="text-lg text-slate-700 mb-4">Xin chào! Bạn tên là gì?</p>
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Nhập tên của bạn..."
-              className="px-4 py-3 border-2 border-slate-300 rounded-lg w-full max-w-sm mx-auto mb-4 text-center focus:outline-none focus:border-teal-500"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && userName.trim()) {
-                  setShowNameInput(false);
-                }
-              }}
-            />
-            <button
-              onClick={() => {
-                if (userName.trim()) {
-                  setShowNameInput(false);
-                }
-              }}
-              disabled={!userName.trim()}
-              className="px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Bắt đầu
-            </button>
+        {showSettings && (
+          <div className="mb-6 p-4 bg-slate-50 rounded-lg">
+            <h4 className="font-semibold mb-3">Tùy chỉnh thời gian</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm mb-1">Hít vào (giây)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={durations.inhale}
+                  onChange={(e) => setDurations({...durations, inhale: parseInt(e.target.value) || 1})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Giữ hơi (giây)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={durations.hold}
+                  onChange={(e) => setDurations({...durations, hold: parseInt(e.target.value) || 1})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Thở ra (giây)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={durations.exhale}
+                  onChange={(e) => setDurations({...durations, exhale: parseInt(e.target.value) || 1})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+              </div>
+            </div>
           </div>
-        ) : (
-          <>
-            <p className="text-lg text-teal-600 font-semibold mb-6">
-              Chào {userName}! Hãy thư giãn cùng tôi nhé 😊
-            </p>
+        )}
 
         <div className="relative w-64 h-64 mx-auto mb-8">
           <div
@@ -959,18 +980,16 @@ function BreathingExercise({ onBack }) {
           </div>
         </div>
 
-            <button
-              onClick={() => setIsActive(!isActive)}
-              className={`px-8 py-4 rounded-lg font-semibold text-white shadow-lg transition ${
-                isActive
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-gradient-to-r from-teal-500 to-cyan-500'
-              }`}
-            >
-              {isActive ? 'Dừng lại' : 'Bắt đầu ngay'}
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => setIsActive(!isActive)}
+          className={`px-8 py-4 rounded-lg font-semibold text-white shadow-lg transition ${
+            isActive
+              ? 'bg-red-500 hover:bg-red-600'
+              : 'bg-gradient-to-r from-teal-500 to-cyan-500'
+          }`}
+        >
+          {isActive ? 'Dừng lại' : 'Bắt đầu ngay'}
+        </button>
       </div>
     </div>
   );
@@ -985,12 +1004,16 @@ const STRETCH_EXERCISES = [
 ];
 
 function StretchExercise({ onBack }) {
-  const [userName, setUserName] = useState('');
-  const [showNameInput, setShowNameInput] = useState(true);
   const [currentExercise, setCurrentExercise] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [isActive, setIsActive] = useState(false);
-  const exercises = STRETCH_EXERCISES;
+  const [showSettings, setShowSettings] = useState(false);
+  const [exercises, setExercises] = useState([
+    { name: 'Xoay cổ', duration: 30, desc: 'Xoay cổ nhẹ nhàng theo chiều kim đồng hồ' },
+    { name: 'Giãn vai', duration: 30, desc: 'Nâng vai lên rồi thả xuống' },
+    { name: 'Vặn người', duration: 30, desc: 'Ngồi thẳng, vặn người sang hai bên' },
+    { name: 'Duỗi tay', duration: 30, desc: 'Duỗi thẳng tay ra trước, kéo về phía ngực' }
+  ]);
 
   useEffect(() => {
     if (!isActive || timeLeft === 0) return;
@@ -1034,42 +1057,54 @@ function StretchExercise({ onBack }) {
       </button>
 
       <div className="bg-white/80 backdrop-blur-md rounded-2xl p-12 shadow-lg text-center">
-        <h3 className="text-3xl font-bold text-slate-800 mb-8">Vận động nhẹ</h3>
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-3xl font-bold text-slate-800">Vận động nhẹ</h3>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 hover:bg-slate-100 rounded-lg transition"
+            title="Cài đặt"
+          >
+            ⚙️
+          </button>
+        </div>
 
-        {showNameInput ? (
-          <div className="mb-8">
-            <p className="text-lg text-slate-700 mb-4">Xin chào! Bạn tên là gì?</p>
-            <input
-              type="text"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Nhập tên của bạn..."
-              className="px-4 py-3 border-2 border-slate-300 rounded-lg w-full max-w-sm mx-auto mb-4 text-center focus:outline-none focus:border-orange-500"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && userName.trim()) {
-                  setShowNameInput(false);
-                }
-              }}
-            />
-            <button
-              onClick={() => {
-                if (userName.trim()) {
-                  setShowNameInput(false);
-                }
-              }}
-              disabled={!userName.trim()}
-              className="px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Bắt đầu
-            </button>
+        {showSettings && (
+          <div className="mb-6 p-4 bg-slate-50 rounded-lg text-left">
+            <h4 className="font-semibold mb-3">Tùy chỉnh động tác</h4>
+            <div className="space-y-3">
+              {exercises.map((ex, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={ex.name}
+                    onChange={(e) => {
+                      const newEx = [...exercises];
+                      newEx[idx].name = e.target.value;
+                      setExercises(newEx);
+                    }}
+                    className="flex-1 px-3 py-2 border rounded-lg"
+                    placeholder="Tên động tác"
+                  />
+                  <input
+                    type="number"
+                    min="10"
+                    max="120"
+                    value={ex.duration}
+                    onChange={(e) => {
+                      const newEx = [...exercises];
+                      newEx[idx].duration = parseInt(e.target.value) || 10;
+                      setExercises(newEx);
+                    }}
+                    className="w-20 px-3 py-2 border rounded-lg"
+                    placeholder="Giây"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        ) : (
-          <>
-            <p className="text-lg text-orange-600 font-semibold mb-6">
-              Chào {userName}! Cùng vận động nhẹ nhàng nhé 💪
-            </p>
+        )}
 
-            <div className="mb-8">
+        <div className="mb-8">
           <div className="text-6xl font-bold text-orange-600 mb-4">{timeLeft}s</div>
           <div className="text-2xl font-bold text-slate-800 mb-2">
             {exercises[currentExercise].name}
@@ -1104,8 +1139,6 @@ function StretchExercise({ onBack }) {
                 Đặt lại
               </button>
             </div>
-          </>
-        )}
       </div>
     </div>
   );
