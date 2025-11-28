@@ -1,0 +1,16 @@
+{
+  "short_name": "AI Học Cùng Tôi",
+  "name": "AI Học Cùng Tôi - Học tập thông minh",
+  "description": "Nền tảng học tập thông minh với AI hỗ trợ tư vấn tâm lý và học tập",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#6366f1",
+  "background_color": "#ffffff"
+}

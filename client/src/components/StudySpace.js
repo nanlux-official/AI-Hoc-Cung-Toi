@@ -172,7 +172,7 @@ function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGl
     <div className="w-64 bg-white/80 backdrop-blur-md shadow-xl h-screen sticky top-0">
       <div className="p-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          AI Nhật Ký
+          AI Học Cùng Tôi
         </h1>
         <p className="text-xs text-slate-500 mt-1">Quản lý học tập thông minh</p>
       </div>

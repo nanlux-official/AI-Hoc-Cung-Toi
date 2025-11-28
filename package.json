@@ -1,7 +1,7 @@
 {
   "name": "ai-hoc-cung-toi",
   "version": "1.0.0",
-  "description": "AI Learning Companion Platform",
+  "description": "AI Học Cùng Tôi - Nền tảng học tập thông minh",
   "main": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
