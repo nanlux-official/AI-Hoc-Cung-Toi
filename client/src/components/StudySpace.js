@@ -318,13 +318,82 @@ function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGl
   );
 }
 
+// Câu động lực
+const MOTIVATIONAL_QUOTES = [
+  "Thành công là tổng của những nỗ lực nhỏ lặp đi lặp lại mỗi ngày.",
+  "Học tập không phải là chuẩn bị cho cuộc sống, học tập chính là cuộc sống.",
+  "Đừng bao giờ từ bỏ ước mơ của bạn. Hãy tiếp tục theo đuổi nó!",
+  "Mỗi ngày là một cơ hội mới để học hỏi và phát triển.",
+  "Kiên trì là chìa khóa dẫn đến thành công.",
+  "Hãy tin vào bản thân và khả năng của mình.",
+  "Thất bại là bước đệm để tiến tới thành công.",
+  "Học hỏi từ hôm qua, sống cho hôm nay, hy vọng cho ngày mai.",
+  "Không có gì là không thể nếu bạn thực sự muốn.",
+  "Hành trình ngàn dặm bắt đầu từ một bước chân.",
+  "Đầu tư vào kiến thức luôn mang lại lợi ích tốt nhất.",
+  "Sự chăm chỉ sẽ đánh bại tài năng khi tài năng không chăm chỉ.",
+  "Hãy học như thể bạn sẽ sống mãi, hãy sống như thể bạn sẽ chết ngày mai.",
+  "Giáo dục là vũ khí mạnh nhất để thay đổi thế giới.",
+  "Mỗi chuyên gia đều từng là người mới bắt đầu.",
+  "Đừng đếm những ngày, hãy làm cho những ngày có ý nghĩa.",
+  "Tương lai thuộc về những người tin vào vẻ đẹp của ước mơ.",
+  "Học tập là kho báu sẽ theo bạn suốt đời.",
+  "Hãy tập trung vào tiến bộ, không phải sự hoàn hảo.",
+  "Mỗi phút học tập hôm nay là đầu tư cho tương lai mai sau."
+];
+
 // ============= HEADER =============
 function Header() {
+  const [greeting, setGreeting] = useState({ text: '', icon: '' });
+  const [quote, setQuote] = useState('');
+
+  useEffect(() => {
+    const updateGreeting = () => {
+      const hour = new Date().getHours();
+      let greetingData = { text: '', icon: '' };
+
+      if (hour >= 5 && hour < 11) {
+        greetingData = { text: 'Chào buổi sáng', icon: '☀️' };
+      } else if (hour >= 11 && hour < 13) {
+        greetingData = { text: 'Chào buổi trưa', icon: '🌤️' };
+      } else if (hour >= 13 && hour < 18) {
+        greetingData = { text: 'Chào buổi chiều', icon: '🌅' };
+      } else if (hour >= 18 && hour < 22) {
+        greetingData = { text: 'Chào buổi tối', icon: '🌙' };
+      } else {
+        greetingData = { text: 'Chúc ngủ ngon', icon: '🌃' };
+      }
+
+      setGreeting(greetingData);
+    };
+
+    const updateQuote = () => {
+      const randomQuote = MOTIVATIONAL_QUOTES[Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)];
+      setQuote(randomQuote);
+    };
+
+    updateGreeting();
+    updateQuote();
+
+    // Cập nhật mỗi phút để kiểm tra thay đổi giờ
+    const interval = setInterval(updateGreeting, 60000);
+    
+    // Cập nhật quote mỗi 30 phút
+    const quoteInterval = setInterval(updateQuote, 1800000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(quoteInterval);
+    };
+  }, []);
+
   return (
     <div className="mb-8">
-      <h2 className="text-3xl font-bold text-slate-800">Chào buổi sáng! ☀️</h2>
-      <p className="text-slate-600 mt-2">
-        "Thành công là tổng của những nỗ lực nhỏ lặp đi lặp lại mỗi ngày."
+      <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+        {greeting.text}! <span className="text-4xl">{greeting.icon}</span>
+      </h2>
+      <p className="text-slate-600 mt-2 italic">
+        "{quote}"
       </p>
     </div>
   );
