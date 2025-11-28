@@ -7,7 +7,7 @@ import { provinces, districts, schools, subjects, grades, bookSets } from '../da
 import { createShortPrompt } from './AIMentorV4_short';
 
 // Gemini API Configuration - sử dụng backend proxy
-const GEMINI_PROXY_URL = '/api/gemini';
+const GEMINI_PROXY_URL = '/api/gemini/generate';
 
 function AIMentorV4({ userId }) {
   // Load config from localStorage

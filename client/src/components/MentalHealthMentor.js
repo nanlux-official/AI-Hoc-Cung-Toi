@@ -12,7 +12,7 @@ import './MentalHealthMentor.css';
 
 // --- CONFIGURATION ---
 // Sử dụng backend proxy thay vì gọi trực tiếp API
-const GEMINI_PROXY_URL = '/api/gemini';
+const GEMINI_PROXY_URL = '/api/gemini/generate';
 
 // --- PROMPT KỸ THUẬT ---
 const getSystemPrompt = (userName, mentorType, teacherName, teacherSubject, currentRoadmapJSON) => `
