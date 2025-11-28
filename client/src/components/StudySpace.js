@@ -7,6 +7,7 @@ import {
 import AIMentorV4 from './AIMentorV4';
 import HealthTracker from './HealthTracker';
 import MentalHealthMentor from './MentalHealthMentor';
+import { UNIVERSITIES, getUniversityById } from '../data/universities';
 
 // Cấu hình môn học
 const SUBJECTS = {
@@ -49,6 +50,10 @@ function StudySpace() {
     return saved ? parseInt(saved) : 0;
   });
   const [isGlobalRunning, setIsGlobalRunning] = useState(false);
+  const [universityGoal, setUniversityGoal] = useState(() => {
+    const saved = localStorage.getItem('universityGoal');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -66,6 +71,12 @@ function StudySpace() {
   useEffect(() => {
     localStorage.setItem('globalTime', globalTime.toString());
   }, [globalTime]);
+
+  useEffect(() => {
+    if (universityGoal) {
+      localStorage.setItem('universityGoal', JSON.stringify(universityGoal));
+    }
+  }, [universityGoal]);
 
   // Global Timer
   useEffect(() => {
@@ -100,6 +111,10 @@ function StudySpace() {
 
         {/* Main Content */}
         <div className="flex-1 p-8">
+          <UniversityGoalBanner 
+            universityGoal={universityGoal}
+            setUniversityGoal={setUniversityGoal}
+          />
           <Header />
           
           {activeTab === 'dashboard' && (
@@ -341,6 +356,236 @@ const MOTIVATIONAL_QUOTES = [
   "Hãy tập trung vào tiến bộ, không phải sự hoàn hảo.",
   "Mỗi phút học tập hôm nay là đầu tư cho tương lai mai sau."
 ];
+
+// ============= UNIVERSITY GOAL BANNER =============
+function UniversityGoalBanner({ universityGoal, setUniversityGoal }) {
+  const [showModal, setShowModal] = useState(false);
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [formData, setFormData] = useState({
+    universityId: 'dhqg-hcm',
+    customName: '',
+    examDate: '2025-06-28',
+    goalName: 'Kỳ thi THPT Quốc gia 2025'
+  });
+
+  useEffect(() => {
+    if (!universityGoal) return;
+
+    const calculateCountdown = () => {
+      const now = new Date().getTime();
+      const examTime = new Date(universityGoal.examDate).getTime();
+      const distance = examTime - now;
+
+      if (distance < 0) {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+
+      setCountdown({
+        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((distance % (1000 * 60)) / 1000)
+      });
+    };
+
+    calculateCountdown();
+    const interval = setInterval(calculateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [universityGoal]);
+
+  const handleSaveGoal = () => {
+    const university = getUniversityById(formData.universityId);
+    const goal = {
+      ...formData,
+      university: formData.universityId === 'custom' ? {
+        ...university,
+        name: formData.customName || 'Trường mục tiêu',
+        shortName: formData.customName || 'Mục tiêu'
+      } : university
+    };
+    setUniversityGoal(goal);
+    setShowModal(false);
+  };
+
+  if (!universityGoal) {
+    return (
+      <div className="mb-6">
+        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold mb-2">🎯 Đặt mục tiêu đại học</h3>
+              <p className="text-indigo-100 text-sm">Thiết lập mục tiêu để có động lực học tập!</p>
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition shadow-lg"
+            >
+              Thiết lập ngay
+            </button>
+          </div>
+        </div>
+
+        {showModal && (
+          <GoalSetupModal
+            formData={formData}
+            setFormData={setFormData}
+            onSave={handleSaveGoal}
+            onClose={() => setShowModal(false)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  const uni = universityGoal.university;
+
+  return (
+    <div className="mb-6">
+      <div className={`bg-gradient-to-r ${uni.color} rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden`}>
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24"></div>
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="text-6xl">{uni.logo}</div>
+              <div>
+                <div className="text-sm opacity-90 mb-1">{universityGoal.goalName}</div>
+                <h2 className="text-2xl md:text-3xl font-bold">{uni.name}</h2>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm font-semibold backdrop-blur-sm"
+            >
+              ⚙️ Sửa
+            </button>
+          </div>
+
+          {/* Countdown */}
+          <div className="grid grid-cols-4 gap-3 mt-6">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <div className="text-3xl md:text-4xl font-bold">{countdown.days}</div>
+              <div className="text-xs md:text-sm opacity-90 mt-1">Ngày</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <div className="text-3xl md:text-4xl font-bold">{countdown.hours}</div>
+              <div className="text-xs md:text-sm opacity-90 mt-1">Giờ</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <div className="text-3xl md:text-4xl font-bold">{countdown.minutes}</div>
+              <div className="text-xs md:text-sm opacity-90 mt-1">Phút</div>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
+              <div className="text-3xl md:text-4xl font-bold">{countdown.seconds}</div>
+              <div className="text-xs md:text-sm opacity-90 mt-1">Giây</div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm opacity-90">
+              💪 Mỗi giây trôi qua là một bước gần hơn đến ước mơ!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {showModal && (
+        <GoalSetupModal
+          formData={formData}
+          setFormData={setFormData}
+          onSave={handleSaveGoal}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function GoalSetupModal({ formData, setFormData, onSave, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold text-slate-800">🎯 Mục tiêu đại học</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full p-2 transition">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Tên mục tiêu</label>
+            <input
+              type="text"
+              value={formData.goalName}
+              onChange={(e) => setFormData({ ...formData, goalName: e.target.value })}
+              className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none"
+              placeholder="VD: Kỳ thi THPT Quốc gia 2025"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Trường đại học</label>
+            <select
+              value={formData.universityId}
+              onChange={(e) => setFormData({ ...formData, universityId: e.target.value })}
+              className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none"
+            >
+              {UNIVERSITIES.map(uni => (
+                <option key={uni.id} value={uni.id}>
+                  {uni.logo} {uni.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {formData.universityId === 'custom' && (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Tên trường (tùy chỉnh)</label>
+              <input
+                type="text"
+                value={formData.customName}
+                onChange={(e) => setFormData({ ...formData, customName: e.target.value })}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none"
+                placeholder="Nhập tên trường..."
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Ngày thi</label>
+            <input
+              type="date"
+              value={formData.examDate}
+              onChange={(e) => setFormData({ ...formData, examDate: e.target.value })}
+              className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
+          >
+            Hủy
+          </button>
+          <button
+            onClick={onSave}
+            className="flex-1 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition"
+          >
+            Lưu mục tiêu
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ============= HEADER =============
 function Header() {
