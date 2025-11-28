@@ -4,8 +4,15 @@ Nền tảng học tập toàn diện với AI hỗ trợ, giúp học sinh qu�
 
 ## 🌟 Tính năng chính
 
+### 🎯 Mục tiêu Đại học
+- Đặt mục tiêu trường đại học mơ ước
+- Đếm ngược thời gian đến kỳ thi
+- Chọn khối thi (A00, B00, C00, D01...)
+- Động lực học tập mỗi ngày
+
 ### 📊 Dashboard - Tổng quan
-- Theo dõi tổng thời gian học tập
+- Theo dõi tổng thời gian học tập với Global Timer
+- Giới hạn tạm dừng (3 lần/ngày) để tập trung
 - Thống kê số hoạt động
 - Đặt và theo dõi mục tiêu học tập theo môn
 
@@ -48,12 +55,23 @@ Nền tảng học tập toàn diện với AI hỗ trợ, giúp học sinh qu�
 - Sổ tay lộ trình
 - [Xem chi tiết →](./MENTAL_HEALTH_MENTOR.md)
 
+## ✨ Cải thiện Giao diện (Mới nhất)
+
+### Desktop UI Enhancements
+- ✅ **Typography cải thiện**: Font sizes lớn hơn, line-height tốt hơn, letter-spacing tối ưu
+- ✅ **Spacing & Layout**: Padding/margin cân đối, max-width 1400px cho desktop
+- ✅ **Colors & Gradients**: Gradient backgrounds đẹp mắt, color scheme hài hòa
+- ✅ **Shadows & Effects**: Box shadows sâu hơn, border-radius lớn hơn (14-20px)
+- ✅ **Sidebar Menu**: Scrollable với 8 menu items, custom scrollbar đẹp
+- ✅ **AI Mentor**: Giao diện chat hiện đại với gradients và animations
+- ✅ **Responsive**: Tối ưu cho cả desktop và mobile
+
 ## 🚀 Cài đặt
 
 ### Yêu cầu
-- Node.js 14+
+- Node.js 16+
 - npm hoặc yarn
-- Gemini API Key
+- Gemini API Key (miễn phí tại Google AI Studio)
 
 ### Bước 1: Clone repository
 ```bash
@@ -154,10 +172,17 @@ ai-learning-platform/
 ## 📱 Responsive Design
 
 Ứng dụng được tối ưu cho:
-- 💻 Desktop (1920x1080+)
-- 💻 Laptop (1366x768+)
-- 📱 Tablet (768x1024+)
-- 📱 Mobile (375x667+)
+- 💻 **Desktop** (1920x1080+) - Giao diện đầy đủ với sidebar, max-width 1400px
+- 💻 **Laptop** (1366x768+) - Layout cân đối, typography rõ ràng
+- 📱 **Tablet** (768x1024+) - Hamburger menu, touch-friendly buttons
+- 📱 **Mobile** (375x667+) - Full responsive, safe area support
+
+### Tính năng Responsive
+- ✅ Hamburger menu cho mobile
+- ✅ Touch-friendly buttons (min 44px)
+- ✅ Scrollable sidebar với custom scrollbar
+- ✅ Backdrop blur effects
+- ✅ Safe area cho iPhone X+ (notch support)
 
 ## 🔐 Bảo mật
 
