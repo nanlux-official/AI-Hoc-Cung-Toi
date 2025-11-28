@@ -452,10 +452,25 @@ function UniversityGoalBanner({ universityGoal, setUniversityGoal }) {
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4">
-              <div className="text-6xl">{uni.logo}</div>
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl p-2 shadow-lg flex items-center justify-center flex-shrink-0">
+                {uni.logo ? (
+                  <img 
+                    src={uni.logo} 
+                    alt={uni.name}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                ) : null}
+                <div className="text-4xl md:text-5xl" style={{ display: uni.logo ? 'none' : 'block' }}>
+                  {uni.emoji}
+                </div>
+              </div>
               <div>
                 <div className="text-sm opacity-90 mb-1">{universityGoal.goalName}</div>
-                <h2 className="text-2xl md:text-3xl font-bold">{uni.name}</h2>
+                <h2 className="text-xl md:text-2xl font-bold">{uni.name}</h2>
               </div>
             </div>
             <button
@@ -538,7 +553,7 @@ function GoalSetupModal({ formData, setFormData, onSave, onClose }) {
             >
               {UNIVERSITIES.map(uni => (
                 <option key={uni.id} value={uni.id}>
-                  {uni.logo} {uni.name}
+                  {uni.emoji} {uni.name}
                 </option>
               ))}
             </select>
