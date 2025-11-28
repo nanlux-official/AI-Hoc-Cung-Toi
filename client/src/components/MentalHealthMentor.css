@@ -124,17 +124,366 @@ input:focus-visible {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Responsive utilities */
-@media (max-width: 768px) {
+/* ============= RESPONSIVE DESIGN ============= */
+
+/* Mobile First - Base styles cho mobile */
+.mental-health-container {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Tablet - 768px and up */
+@media (min-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .md\:flex {
+    display: flex;
+  }
+  
   .md\:hidden {
     display: none;
   }
+  
+  .md\:block {
+    display: block;
+  }
+  
+  .md\:text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  .md\:p-8 {
+    padding: 2rem;
+  }
+  
+  .md\:gap-4 {
+    gap: 1rem;
+  }
+}
+
+/* Mobile - Max 767px */
+@media (max-width: 767px) {
+  /* Setup form mobile */
+  .setup-form-container {
+    padding: 1rem !important;
+    max-width: 100% !important;
+  }
+  
+  .setup-form-container h1 {
+    font-size: 1.25rem !important;
+  }
+  
+  .setup-form-container input,
+  .setup-form-container select {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+  
+  /* Mobile Sidebar */
+  .mobile-sidebar {
+    width: 85vw !important;
+    max-width: 320px !important;
+  }
+  
+  .mobile-sidebar-overlay {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Hamburger menu button */
+  .mobile-menu-btn {
+    position: relative;
+    z-index: 10;
+  }
+  
+  .mobile-menu-btn:active {
+    transform: scale(0.95);
+  }
+  
+  /* Prevent body scroll when menu open */
+  body.menu-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+  
+  /* Sidebar animation */
+  .sidebar-enter {
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-enter-active {
+    transform: translateX(0);
+    transition: transform 300ms ease-in-out;
+  }
+  
+  .sidebar-exit {
+    transform: translateX(0);
+  }
+  
+  .sidebar-exit-active {
+    transform: translateX(-100%);
+    transition: transform 300ms ease-in-out;
+  }
+  
+  /* Backdrop animation */
+  .backdrop-enter {
+    opacity: 0;
+  }
+  
+  .backdrop-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-out;
+  }
+  
+  .backdrop-exit {
+    opacity: 1;
+  }
+  
+  .backdrop-exit-active {
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+  }
+  
+  /* Chat layout mobile */
+  .chat-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar-desktop {
+    display: none !important;
+  }
+  
+  .chat-main {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Messages mobile */
+  .message-bubble {
+    max-width: 85% !important;
+    font-size: 0.9rem !important;
+  }
+  
+  /* Roadmap mobile */
+  .roadmap-container {
+    padding: 0.75rem !important;
+  }
+  
+  .roadmap-step {
+    padding: 0.75rem !important;
+    font-size: 0.85rem !important;
+  }
+  
+  /* Input area mobile */
+  .input-container {
+    padding: 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  
+  .input-container textarea {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+    min-height: 44px !important; /* iOS touch target */
+  }
+  
+  .input-container button {
+    min-width: 44px !important; /* iOS touch target */
+    min-height: 44px !important;
+  }
+  
+  /* Stats mobile */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Mobile menu */
+  .mobile-menu-button {
+    display: block !important;
+  }
+  
+  /* History panel mobile */
+  .history-panel-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: white;
+  }
+  
+  /* Buttons mobile */
+  button {
+    min-height: 44px; /* iOS touch target */
+    font-size: 0.9rem;
+  }
+  
+  /* Grid mobile */
+  .grid-cols-2 {
+    gap: 0.75rem !important;
+  }
+  
+  /* Padding adjustments */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  
+  .p-4 {
+    padding: 0.75rem !important;
+  }
+  
+  /* Text size adjustments */
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* Small mobile - Max 480px */
+@media (max-width: 480px) {
+  .setup-form-container {
+    padding: 0.75rem !important;
+    margin: 0.5rem !important;
+  }
+  
+  .message-bubble {
+    max-width: 90% !important;
+    font-size: 0.85rem !important;
+  }
+  
+  .roadmap-step {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Smaller buttons on very small screens */
+  button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+  
+  /* Compact stats */
+  .stat-card {
+    padding: 0.5rem !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .setup-form-container {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .chat-messages {
+    max-height: 50vh !important;
+  }
+}
+
+/* Large screens - 1024px and up */
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .lg\:max-w-6xl {
+    max-width: 72rem;
+  }
+}
+
+/* Extra large screens - 1280px and up */
+@media (min-width: 1280px) {
+  .xl\:max-w-7xl {
+    max-width: 80rem;
+  }
+}
+
+/* ============= UTILITY CLASSES ============= */
+
+/* Safe area for notch devices (iPhone X+) */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Touch-friendly */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Prevent text selection on buttons */
+button {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth font rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent zoom on input focus (iOS) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+  font-size: 16px !important;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Flex utilities */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* Print styles */
 @media print {
   .no-print {
     display: none !important;
+  }
+  
+  .print-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 

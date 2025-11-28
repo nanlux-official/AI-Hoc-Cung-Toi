@@ -8,6 +8,7 @@ import AIMentorV4 from './AIMentorV4';
 import HealthTracker from './HealthTracker';
 import MentalHealthMentor from './MentalHealthMentor';
 import { UNIVERSITIES, getUniversityById } from '../data/universities';
+import './StudySpace.css';
 
 // Cấu hình môn học
 const SUBJECTS = {
@@ -33,6 +34,7 @@ const MOODS = ['😢', '😐', '🙂', '😄'];
 
 function StudySpace() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [dailyLogs, setDailyLogs] = useState(() => {
     const saved = localStorage.getItem('studyLogs');
     return saved ? JSON.parse(saved) : [];
@@ -96,13 +98,35 @@ function StudySpace() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showMobileMenu]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      {/* Mobile Overlay */}
+      {showMobileMenu && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setShowMobileMenu(false)}
+        />
+      )}
+      
       <div className="flex">
         {/* Sidebar */}
         <Sidebar 
           activeTab={activeTab} 
           setActiveTab={setActiveTab}
+          showMobileMenu={showMobileMenu}
+          setShowMobileMenu={setShowMobileMenu}
           globalTime={globalTime}
           isGlobalRunning={isGlobalRunning}
           setIsGlobalRunning={setIsGlobalRunning}
@@ -110,7 +134,23 @@ function StudySpace() {
         />
 
         {/* Main Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 lg:p-8">
+          {/* Mobile Header with Hamburger */}
+          <div className="lg:hidden mb-4 flex items-center gap-3">
+            <button
+              onClick={() => setShowMobileMenu(true)}
+              className="p-2 hover:bg-white/50 rounded-lg transition active:scale-95"
+              aria-label="Mở menu"
+            >
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              AI Học Cùng Tôi
+            </h2>
+          </div>
+          
           <UniversityGoalBanner 
             universityGoal={universityGoal}
             setUniversityGoal={setUniversityGoal}
@@ -171,7 +211,7 @@ function StudySpace() {
 }
 
 // ============= SIDEBAR =============
-function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGlobalRunning, formatTime }) {
+function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGlobalRunning, formatTime, showMobileMenu, setShowMobileMenu }) {
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [pauseReason, setPauseReason] = useState('');
   const [pauseCount, setPauseCount] = useState(() => {
@@ -227,18 +267,35 @@ function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGl
     { id: 'mental', icon: Brain, label: 'Tâm lý' }
   ];
 
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (showMobileMenu) {
+      setShowMobileMenu(false);
+    }
+  };
+
   return (
     <>
-      <div className="w-64 bg-white/80 backdrop-blur-md shadow-xl h-screen sticky top-0">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            AI Học Cùng Tôi
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">Quản lý học tập thông minh</p>
+      <div className={`sidebar-container fixed lg:relative inset-y-0 left-0 z-50 w-72 lg:w-64 bg-white/90 backdrop-blur-md shadow-2xl lg:shadow-xl transform transition-transform duration-300 ease-in-out ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        {/* Header */}
+        <div className="p-6 flex justify-between items-start flex-shrink-0">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              AI Học Cùng Tôi
+            </h1>
+            <p className="text-xs text-slate-500 mt-1">Quản lý học tập thông minh</p>
+          </div>
+          <button
+            onClick={() => setShowMobileMenu(false)}
+            className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition"
+            aria-label="Đóng menu"
+          >
+            <X className="w-5 h-5 text-slate-600" />
+          </button>
         </div>
 
         {/* Global Timer */}
-        <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+        <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex-shrink-0">
           <div className="text-xs uppercase tracking-wide mb-2">Tổng thời gian</div>
           <div className="text-3xl font-bold font-mono">{formatTime(globalTime)}</div>
           <div className="text-xs mt-1 opacity-80">
@@ -253,12 +310,12 @@ function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGl
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="mt-6">
+        {/* Navigation - Scrollable Menu */}
+        <nav className="sidebar-nav">
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`w-full flex items-center gap-3 px-6 py-3 transition ${
                 activeTab === tab.id
                   ? 'bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600'
@@ -365,7 +422,8 @@ function UniversityGoalBanner({ universityGoal, setUniversityGoal }) {
     universityId: 'dhqg-hcm',
     customName: '',
     examDate: '2025-06-28',
-    goalName: 'Kỳ thi THPT Quốc gia 2025'
+    goalName: 'Kỳ thi THPT Quốc gia 2025',
+    examBlock: 'A00'
   });
 
   useEffect(() => {
@@ -451,58 +509,50 @@ function UniversityGoalBanner({ universityGoal, setUniversityGoal }) {
 
         <div className="relative z-10">
           <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl p-2 shadow-lg flex items-center justify-center flex-shrink-0">
-                {uni.logo ? (
-                  <img 
-                    src={uni.logo} 
-                    alt={uni.name}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
-                    }}
-                  />
-                ) : null}
-                <div className="text-4xl md:text-5xl" style={{ display: uni.logo ? 'none' : 'block' }}>
-                  {uni.emoji}
-                </div>
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-md rounded-2xl shadow-xl flex items-center justify-center flex-shrink-0 border-2 border-white/30">
+                <div className="text-4xl md:text-5xl">{uni.emoji}</div>
               </div>
-              <div>
-                <div className="text-sm opacity-90 mb-1">{universityGoal.goalName}</div>
-                <h2 className="text-xl md:text-2xl font-bold">{uni.name}</h2>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs md:text-sm opacity-90 mb-1 font-medium">{universityGoal.goalName}</div>
+                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold">{uni.name}</h2>
+                {universityGoal.examBlock && (
+                  <div className="mt-1 inline-block px-2 py-0.5 bg-white/30 rounded-md text-xs font-semibold">
+                    📚 Khối {universityGoal.examBlock}
+                  </div>
+                )}
               </div>
             </div>
             <button
               onClick={() => setShowModal(true)}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm font-semibold backdrop-blur-sm"
+              className="px-3 md:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition text-xs md:text-sm font-semibold backdrop-blur-sm border border-white/30 flex-shrink-0"
             >
               ⚙️ Sửa
             </button>
           </div>
 
           {/* Countdown */}
-          <div className="grid grid-cols-4 gap-3 mt-6">
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-              <div className="text-3xl md:text-4xl font-bold">{countdown.days}</div>
-              <div className="text-xs md:text-sm opacity-90 mt-1">Ngày</div>
+          <div className="grid grid-cols-4 gap-2 md:gap-3 mt-4 md:mt-6">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 text-center border border-white/20 hover:bg-white/30 transition">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">{countdown.days}</div>
+              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1 font-medium">Ngày</div>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-              <div className="text-3xl md:text-4xl font-bold">{countdown.hours}</div>
-              <div className="text-xs md:text-sm opacity-90 mt-1">Giờ</div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 text-center border border-white/20 hover:bg-white/30 transition">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">{countdown.hours}</div>
+              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1 font-medium">Giờ</div>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-              <div className="text-3xl md:text-4xl font-bold">{countdown.minutes}</div>
-              <div className="text-xs md:text-sm opacity-90 mt-1">Phút</div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 text-center border border-white/20 hover:bg-white/30 transition">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">{countdown.minutes}</div>
+              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1 font-medium">Phút</div>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-              <div className="text-3xl md:text-4xl font-bold">{countdown.seconds}</div>
-              <div className="text-xs md:text-sm opacity-90 mt-1">Giây</div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 text-center border border-white/20 hover:bg-white/30 transition">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">{countdown.seconds}</div>
+              <div className="text-[10px] md:text-xs opacity-90 mt-0.5 md:mt-1 font-medium">Giây</div>
             </div>
           </div>
 
-          <div className="mt-4 text-center">
-            <p className="text-sm opacity-90">
+          <div className="mt-3 md:mt-4 text-center">
+            <p className="text-xs md:text-sm opacity-90 font-medium">
               💪 Mỗi giây trôi qua là một bước gần hơn đến ước mơ!
             </p>
           </div>
@@ -553,7 +603,7 @@ function GoalSetupModal({ formData, setFormData, onSave, onClose }) {
             >
               {UNIVERSITIES.map(uni => (
                 <option key={uni.id} value={uni.id}>
-                  {uni.emoji} {uni.name}
+                  {uni.logo} {uni.name}
                 </option>
               ))}
             </select>
@@ -571,6 +621,82 @@ function GoalSetupModal({ formData, setFormData, onSave, onClose }) {
               />
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Khối thi</label>
+            <select
+              value={formData.examBlock}
+              onChange={(e) => setFormData({ ...formData, examBlock: e.target.value })}
+              className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none"
+            >
+              <optgroup label="Khối A - Khoa học Tự nhiên">
+                <option value="A00">A00 - Toán, Lý, Hóa</option>
+                <option value="A01">A01 - Toán, Lý, Anh</option>
+                <option value="A02">A02 - Toán, Lý, Sinh</option>
+                <option value="A03">A03 - Toán, Lý, Sử</option>
+                <option value="A04">A04 - Toán, Lý, Địa</option>
+                <option value="A05">A05 - Toán, Hóa, Sử</option>
+                <option value="A06">A06 - Toán, Hóa, Địa</option>
+                <option value="A07">A07 - Toán, Lý, GDCD</option>
+                <option value="A08">A08 - Toán, Hóa, GDCD</option>
+                <option value="A09">A09 - Toán, Sinh, GDCD</option>
+                <option value="A10">A10 - Toán, Lý, Tin</option>
+                <option value="A11">A11 - Toán, Hóa, Tin</option>
+                <option value="A12">A12 - Toán, Sinh, Tin</option>
+                <option value="A14">A14 - Toán, Địa, GDCD</option>
+                <option value="A15">A15 - Toán, Sinh, Sử</option>
+                <option value="A16">A16 - Toán, Sinh, Địa</option>
+                <option value="A17">A17 - Toán, Lý, Văn</option>
+                <option value="A18">A18 - Toán, Hóa, Văn</option>
+              </optgroup>
+              <optgroup label="Khối B - Khoa học Tự nhiên & Xã hội">
+                <option value="B00">B00 - Toán, Hóa, Sinh</option>
+                <option value="B01">B01 - Toán, Sinh, Anh</option>
+                <option value="B02">B02 - Toán, Sinh, Văn</option>
+                <option value="B03">B03 - Toán, Sinh, Sử</option>
+                <option value="B04">B04 - Toán, Sinh, Địa</option>
+                <option value="B05">B05 - Toán, Hóa, Sử</option>
+                <option value="B08">B08 - Toán, Sinh, GDCD</option>
+              </optgroup>
+              <optgroup label="Khối C - Khoa học Xã hội">
+                <option value="C00">C00 - Văn, Sử, Địa</option>
+                <option value="C01">C01 - Văn, Toán, Lý</option>
+                <option value="C02">C02 - Văn, Toán, Hóa</option>
+                <option value="C03">C03 - Văn, Toán, Sử</option>
+                <option value="C04">C04 - Văn, Toán, Địa</option>
+                <option value="C05">C05 - Văn, Lý, Hóa</option>
+                <option value="C06">C06 - Văn, Lý, Sinh</option>
+                <option value="C07">C07 - Văn, Lý, Sử</option>
+                <option value="C08">C08 - Văn, Hóa, Sử</option>
+                <option value="C09">C09 - Văn, Toán, GDCD</option>
+                <option value="C10">C10 - Văn, Sử, GDCD</option>
+                <option value="C12">C12 - Văn, Toán, Sinh</option>
+                <option value="C13">C13 - Văn, Toán, Tin</option>
+                <option value="C14">C14 - Văn, Toán, Anh</option>
+                <option value="C15">C15 - Văn, Sử, Anh</option>
+                <option value="C16">C16 - Văn, Địa, Anh</option>
+                <option value="C19">C19 - Văn, Sử, Tin</option>
+                <option value="C20">C20 - Văn, Địa, Tin</option>
+              </optgroup>
+              <optgroup label="Khối D - Ngoại ngữ">
+                <option value="D01">D01 - Toán, Văn, Anh</option>
+                <option value="D02">D02 - Toán, Văn, Nga</option>
+                <option value="D03">D03 - Toán, Văn, Pháp</option>
+                <option value="D04">D04 - Toán, Văn, Trung</option>
+                <option value="D05">D05 - Toán, Văn, Đức</option>
+                <option value="D06">D06 - Toán, Văn, Nhật</option>
+                <option value="D07">D07 - Toán, Hóa, Anh</option>
+                <option value="D08">D08 - Toán, Sinh, Anh</option>
+                <option value="D09">D09 - Toán, Sử, Anh</option>
+                <option value="D10">D10 - Toán, Địa, Anh</option>
+                <option value="D11">D11 - Văn, Lý, Anh</option>
+                <option value="D12">D12 - Văn, Hóa, Anh</option>
+                <option value="D13">D13 - Văn, Sinh, Anh</option>
+                <option value="D14">D14 - Văn, Sử, Anh</option>
+                <option value="D15">D15 - Văn, Địa, Anh</option>
+              </optgroup>
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Ngày thi</label>
@@ -824,9 +950,35 @@ export default StudySpace;
 function SchedulerView({ schedule, setSchedule }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const saved = localStorage.getItem('currentWeek');
+    return saved ? parseInt(saved) : getCurrentWeekNumber();
+  });
 
   const days = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
   const hours = Array.from({ length: 17 }, (_, i) => i + 6); // 6:00 - 22:00
+  const totalWeeks = 40; // Tổng số tuần trong năm học
+
+  // Tính số tuần từ đầu năm học (1/9)
+  function getCurrentWeekNumber() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const schoolYearStart = new Date(currentYear, 8, 1); // 1/9
+    
+    // Nếu hiện tại trước 1/9, lấy năm trước
+    if (now < schoolYearStart) {
+      schoolYearStart.setFullYear(currentYear - 1);
+    }
+    
+    const diffTime = Math.abs(now - schoolYearStart);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.ceil(diffDays / 7);
+  }
+
+  // Lưu tuần hiện tại vào localStorage
+  useEffect(() => {
+    localStorage.setItem('currentWeek', currentWeek.toString());
+  }, [currentWeek]);
 
   const handleSlotClick = (dayIndex, hour) => {
     setSelectedSlot({ dayIndex, hour });
@@ -834,13 +986,13 @@ function SchedulerView({ schedule, setSchedule }) {
   };
 
   const handleSaveSchedule = (data) => {
-    const key = `${selectedSlot.dayIndex}-${selectedSlot.hour}`;
+    const key = `w${currentWeek}-${selectedSlot.dayIndex}-${selectedSlot.hour}`;
     setSchedule({ ...schedule, [key]: data });
     setShowModal(false);
   };
 
   const handleDeleteSchedule = () => {
-    const key = `${selectedSlot.dayIndex}-${selectedSlot.hour}`;
+    const key = `w${currentWeek}-${selectedSlot.dayIndex}-${selectedSlot.hour}`;
     const newSchedule = { ...schedule };
     delete newSchedule[key];
     setSchedule(newSchedule);
@@ -849,7 +1001,54 @@ function SchedulerView({ schedule, setSchedule }) {
 
   return (
     <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg">
-      <h3 className="text-2xl font-bold text-slate-800 mb-6">Lịch học tuần</h3>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <h3 className="text-2xl font-bold text-slate-800">Lịch học tuần</h3>
+        
+        {/* Week Selector */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <button
+            onClick={() => setCurrentWeek(Math.max(1, currentWeek - 1))}
+            disabled={currentWeek <= 1}
+            className="p-2 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition font-bold"
+            title="Tuần trước"
+          >
+            ←
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600 font-medium">Tuần</span>
+            <select
+              value={currentWeek}
+              onChange={(e) => setCurrentWeek(parseInt(e.target.value))}
+              className="px-3 py-2 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none font-bold text-indigo-600"
+            >
+              {Array.from({ length: totalWeeks }, (_, i) => i + 1).map(week => (
+                <option key={week} value={week}>
+                  {week}
+                </option>
+              ))}
+            </select>
+            <span className="text-sm text-slate-600 font-medium">/ {totalWeeks}</span>
+          </div>
+          
+          <button
+            onClick={() => setCurrentWeek(Math.min(totalWeeks, currentWeek + 1))}
+            disabled={currentWeek >= totalWeeks}
+            className="p-2 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition font-bold"
+            title="Tuần sau"
+          >
+            →
+          </button>
+          
+          <button
+            onClick={() => setCurrentWeek(getCurrentWeekNumber())}
+            className="px-3 md:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm font-semibold"
+            title="Về tuần hiện tại"
+          >
+            Tuần này
+          </button>
+        </div>
+      </div>
       
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
@@ -870,7 +1069,7 @@ function SchedulerView({ schedule, setSchedule }) {
                   {hour}:00
                 </td>
                 {days.map((_, dayIndex) => {
-                  const key = `${dayIndex}-${hour}`;
+                  const key = `w${currentWeek}-${dayIndex}-${hour}`;
                   const slot = schedule[key];
                   
                   return (
@@ -1015,7 +1214,7 @@ function DailyLogView({ dailyLogs, setDailyLogs }) {
   const totalToday = dailyLogs.reduce((sum, log) => sum + log.duration, 0);
 
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Form bên trái */}
       <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-lg">
         <h3 className="text-2xl font-bold text-slate-800 mb-6">Ghi nhật ký học tập</h3>

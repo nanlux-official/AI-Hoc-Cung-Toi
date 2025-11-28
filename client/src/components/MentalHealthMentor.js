@@ -15,9 +15,10 @@ import './MentalHealthMentor.css';
 const GEMINI_PROXY_URL = '/api/gemini/generate';
 
 // --- PROMPT KỸ THUẬT ---
-const getSystemPrompt = (userName, mentorType, currentRoadmapJSON) => `
-Bạn là: ${mentorType === 'male' ? 'Thầy giáo (Thầy - em)' : 'Cô giáo (Cô - em)'} tâm lý & học tập.
+const getSystemPrompt = (userName, mentorType, teacherName, teacherSubject, currentRoadmapJSON) => `
+Bạn là: ${mentorType === 'male' ? `Thầy ${teacherName}` : `Cô ${teacherName}`} - giáo viên dạy môn ${teacherSubject}, đồng thời là người tư vấn tâm lý & học tập.
 Học sinh: "${userName}".
+Xưng hô: ${mentorType === 'male' ? 'Thầy - em' : 'Cô - em'}.
 
 DỮ LIỆU HIỆN TẠI (ROADMAP):
 ${currentRoadmapJSON}
@@ -77,24 +78,44 @@ const cleanJSON = (text) => {
 
 function MentalHealthMentor() {
   // --- STATE ---
-  const [userData, setUserData] = useState({ name: '', mentor: 'female', setupDone: false });
-  const [sessions, setSessions] = useState([]); 
+  const [userData, setUserData] = useState(() => {
+    const saved = localStorage.getItem('mindful_user_v9');
+    return saved ? JSON.parse(saved) : {
+      name: '', 
+      mentor: 'female', 
+      teacherName: '', 
+      teacherSubject: '', 
+      setupDone: false 
+    };
+  });
+  const [sessions, setSessions] = useState(() => {
+    const saved = localStorage.getItem('mindful_sessions_v9');
+    return saved ? JSON.parse(saved) : [];
+  }); 
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showHistoryMobile, setShowHistoryMobile] = useState(false);
   const [isRoadmapLocked, setIsRoadmapLocked] = useState(false);
   const [showJournal, setShowJournal] = useState(false);
+  const [showRoadmapMobile, setShowRoadmapMobile] = useState(false);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
   // --- EFFECT ---
+  // Data is now loaded in useState initializer
+
+  // Prevent body scroll when mobile menu is open
   useEffect(() => {
-    const savedSessions = localStorage.getItem('mindful_sessions_v9');
-    const savedUser = localStorage.getItem('mindful_user_v9');
-    if (savedSessions) setSessions(JSON.parse(savedSessions));
-    if (savedUser) setUserData(JSON.parse(savedUser));
-  }, []);
+    if (showHistoryMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showHistoryMobile]);
 
   useEffect(() => {
     localStorage.setItem('mindful_sessions_v9', JSON.stringify(sessions));
@@ -156,7 +177,7 @@ function MentalHealthMentor() {
       ).join('\n');
 
       const currentRoadmapJSON = JSON.stringify(currentSess.roadmap);
-      const fullPrompt = `${getSystemPrompt(userData.name, userData.mentor, currentRoadmapJSON)}\n\nLỊCH SỬ CHAT:\n${historyText}\n\nHọc sinh: "${userText}"`;
+      const fullPrompt = `${getSystemPrompt(userData.name, userData.mentor, userData.teacherName, userData.teacherSubject, currentRoadmapJSON)}\n\nLỊCH SỬ CHAT:\n${historyText}\n\nHọc sinh: "${userText}"`;
 
       // Sử dụng backend proxy
       const response = await fetch(GEMINI_PROXY_URL, {
@@ -290,49 +311,90 @@ function MentalHealthMentor() {
 
   if (!userData.setupDone) {
     return (
-      <div className="h-full bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center p-4 font-sans text-gray-900 overflow-y-auto">
-        <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8 max-w-md w-full my-auto border border-gray-100">
-           <div className="text-center mb-6">
-            <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-indigo-200">
-              <User className="w-7 h-7 text-white" />
+      <div className="h-full min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-start sm:items-center justify-center p-4 pt-8 sm:pt-4 font-sans text-gray-900 overflow-y-auto">
+        <div className="bg-white rounded-3xl shadow-xl p-4 sm:p-6 md:p-8 max-w-md w-full border border-gray-100">
+           <div className="text-center mb-4 sm:mb-6">
+            <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-indigo-200">
+              <User className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Hồ sơ cá nhân</h1>
-            <p className="text-gray-500 mt-1 text-sm">Giúp AI hiểu em hơn</p>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">Hồ sơ cá nhân</h1>
+            <p className="text-gray-500 mt-1 text-xs sm:text-sm">Giúp AI hiểu em hơn</p>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Tên của em</label>
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Tên của em</label>
               <input 
                 type="text" 
-                className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
                 placeholder="Nhập tên..." 
                 value={userData.name} 
                 onChange={e => setUserData({...userData, name: e.target.value})} 
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Người đồng hành</label>
-              <div className="grid grid-cols-2 gap-3">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Người đồng hành</label>
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <button 
                   onClick={() => setUserData({...userData, mentor: 'male'})} 
-                  className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${userData.mentor === 'male' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+                  className={`p-2 sm:p-3 rounded-xl border-2 flex flex-col items-center gap-1 sm:gap-2 transition-all ${userData.mentor === 'male' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
                 >
-                  <GraduationCap className="w-7 h-7" />
-                  <span className="font-semibold text-sm">Thầy Giáo</span>
+                  <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7" />
+                  <span className="font-semibold text-xs sm:text-sm">Thầy Giáo</span>
                 </button>
                 <button 
                   onClick={() => setUserData({...userData, mentor: 'female'})} 
-                  className={`p-3 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${userData.mentor === 'female' ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+                  className={`p-2 sm:p-3 rounded-xl border-2 flex flex-col items-center gap-1 sm:gap-2 transition-all ${userData.mentor === 'female' ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
                 >
-                  <Sparkles className="w-7 h-7" />
-                  <span className="font-semibold text-sm">Cô Giáo</span>
+                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" />
+                  <span className="font-semibold text-xs sm:text-sm">Cô Giáo</span>
                 </button>
               </div>
             </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                Tên {userData.mentor === 'male' ? 'Thầy' : 'Cô'} giáo
+              </label>
+              <input 
+                type="text" 
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
+                placeholder={`Nhập tên ${userData.mentor === 'male' ? 'thầy' : 'cô'}...`}
+                value={userData.teacherName} 
+                onChange={e => setUserData({...userData, teacherName: e.target.value})} 
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
+                {userData.mentor === 'male' ? 'Thầy' : 'Cô'} dạy môn
+              </label>
+              <select 
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                value={userData.teacherSubject}
+                onChange={e => setUserData({...userData, teacherSubject: e.target.value})}
+              >
+                <option value="">-- Chọn môn học --</option>
+                <option value="Toán">Toán</option>
+                <option value="Vật lý">Vật lý</option>
+                <option value="Hóa học">Hóa học</option>
+                <option value="Sinh học">Sinh học</option>
+                <option value="Văn học">Văn học</option>
+                <option value="Tiếng Anh">Tiếng Anh</option>
+                <option value="Lịch sử">Lịch sử</option>
+                <option value="Địa lý">Địa lý</option>
+                <option value="Giáo dục công dân">Giáo dục công dân</option>
+                <option value="Tin học">Tin học</option>
+                <option value="Công nghệ">Công nghệ</option>
+                <option value="Thể dục">Thể dục</option>
+                <option value="Âm nhạc">Âm nhạc</option>
+                <option value="Mỹ thuật">Mỹ thuật</option>
+              </select>
+            </div>
+            
             <button 
-              disabled={!userData.name.trim()} 
+              disabled={!userData.name.trim() || !userData.teacherName.trim() || !userData.teacherSubject} 
               onClick={() => setUserData({...userData, setupDone: true})} 
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3 rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl mt-2"
+              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2.5 sm:py-3 text-sm sm:text-base rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl mt-2"
             >
               Bắt đầu ngay
             </button>
@@ -345,12 +407,29 @@ function MentalHealthMentor() {
   const currentSession = getCurrentSession();
 
   return (
-    <div className="flex h-full bg-gradient-to-br from-slate-50 to-indigo-50 overflow-hidden font-sans text-gray-900">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-indigo-50 overflow-hidden font-sans text-gray-900">
+      {/* MOBILE OVERLAY/BACKDROP */}
+      {showHistoryMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden backdrop-blur-sm"
+          onClick={() => setShowHistoryMobile(false)}
+        />
+      )}
+      
       {/* LEFT SIDEBAR */}
-      <div className={`fixed md:relative inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ${showHistoryMobile ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 flex flex-col shadow-xl md:shadow-none`}>
+      <div className={`fixed md:relative inset-y-0 left-0 z-30 w-72 md:w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${showHistoryMobile ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 flex flex-col shadow-2xl md:shadow-none`}>
         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-white">
-            <h2 className="font-bold flex gap-2 text-indigo-900"><History className="text-indigo-600 w-5 h-5"/> Lịch sử</h2>
-            <button onClick={() => setShowHistoryMobile(false)} className="md:hidden hover:bg-gray-100 rounded-lg p-1 transition"><X className="w-5 h-5 text-gray-400"/></button>
+            <h2 className="font-bold flex gap-2 text-indigo-900">
+              <History className="text-indigo-600 w-5 h-5"/> 
+              Lịch sử
+            </h2>
+            <button 
+              onClick={() => setShowHistoryMobile(false)} 
+              className="md:hidden hover:bg-indigo-100 rounded-lg p-2 transition-all active:scale-95"
+              aria-label="Đóng menu"
+            >
+              <X className="w-5 h-5 text-indigo-600"/>
+            </button>
         </div>
         
         <div className="p-3 space-y-2">
@@ -393,22 +472,55 @@ function MentalHealthMentor() {
       {showJournal ? (
         <JournalView />
       ) : (
-        <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 to-white relative">
-          <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 h-14 flex items-center justify-between px-4 sticky top-0 z-10 shadow-sm">
+        <div className="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 to-white relative overflow-hidden">
+          <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 h-14 flex items-center justify-between px-3 md:px-4 z-10 shadow-sm flex-shrink-0">
               <div className="flex items-center gap-2">
-                  <button onClick={() => setShowHistoryMobile(true)} className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition"><Menu className="w-5 h-5 text-gray-500"/></button>
+                  <button 
+                    onClick={() => setShowHistoryMobile(true)} 
+                    className="md:hidden p-2 hover:bg-indigo-50 rounded-lg transition-all active:scale-95 mobile-menu-btn relative"
+                    aria-label="Mở menu"
+                    title="Mở lịch sử"
+                  >
+                    <Menu className="w-5 h-5 text-indigo-600"/>
+                    {sessions.length > 0 && (
+                      <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></span>
+                    )}
+                  </button>
                   <button onClick={() => setCurrentSessionId(null)} className="p-2 hover:bg-indigo-50 rounded-lg text-gray-600 transition" title="Trang chủ">
                      <Home className="w-5 h-5 text-indigo-600" />
                   </button>
-                  {currentSession && <h2 className="font-bold flex gap-2 text-sm md:text-base items-center text-gray-800">{userData.mentor === 'male' ? <GraduationCap className="text-indigo-600 w-5 h-5"/> : <Sparkles className="text-rose-500 w-5 h-5"/>} {userData.mentor === 'male' ? 'Thầy giáo' : 'Cô giáo'}</h2>}
+                  {currentSession && (
+                    <h2 className="font-bold flex gap-2 text-sm md:text-base items-center text-gray-800">
+                      {userData.mentor === 'male' ? <GraduationCap className="text-indigo-600 w-5 h-5"/> : <Sparkles className="text-rose-500 w-5 h-5"/>}
+                      <span className="hidden sm:inline">{userData.mentor === 'male' ? `Thầy ${userData.teacherName}` : `Cô ${userData.teacherName}`}</span>
+                      <span className="sm:hidden">{userData.mentor === 'male' ? 'Thầy' : 'Cô'}</span>
+                    </h2>
+                  )}
               </div>
               {currentSession && (
-                  <div className="flex gap-1.5 flex-col items-end">
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Trạng thái</span>
-                      <div className="flex gap-1.5">
-                          <div title="Tích cực" className={`h-2 w-2 rounded-full transition-all ${currentSession.stats.positivity > 50 ? 'bg-green-500 shadow-sm shadow-green-300' : 'bg-gray-200'}`}></div>
-                          <div title="Ổn định" className={`h-2 w-2 rounded-full transition-all ${currentSession.stats.stability > 50 ? 'bg-blue-500 shadow-sm shadow-blue-300' : 'bg-gray-200'}`}></div>
-                          <div title="Căng thẳng" className={`h-2 w-2 rounded-full transition-all ${currentSession.stats.negativity > 30 ? 'bg-red-400 shadow-sm shadow-red-300' : 'bg-gray-200'}`}></div>
+                  <div className="flex gap-2 items-center">
+                      {/* Mobile Roadmap Button - Always show */}
+                      <button
+                        onClick={() => setShowRoadmapMobile(true)}
+                        disabled={!currentSession.roadmap || currentSession.roadmap.length === 0}
+                        className="lg:hidden p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition relative disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={currentSession.roadmap && currentSession.roadmap.length > 0 ? "Xem lộ trình" : "Chưa có lộ trình"}
+                      >
+                        <ListChecks className="w-5 h-5" />
+                        {currentSession.roadmap && currentSession.roadmap.length > 0 && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+                            {currentSession.roadmap.length}
+                          </span>
+                        )}
+                      </button>
+                      
+                      <div className="flex gap-1.5 flex-col items-end">
+                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider hidden sm:block">Trạng thái</span>
+                          <div className="flex gap-1.5">
+                              <div title="Tích cực" className={`h-2 w-2 rounded-full transition-all ${currentSession.stats.positivity > 50 ? 'bg-green-500 shadow-sm shadow-green-300' : 'bg-gray-200'}`}></div>
+                              <div title="Ổn định" className={`h-2 w-2 rounded-full transition-all ${currentSession.stats.stability > 50 ? 'bg-blue-500 shadow-sm shadow-blue-300' : 'bg-gray-200'}`}></div>
+                              <div title="Căng thẳng" className={`h-2 w-2 rounded-full transition-all ${currentSession.stats.negativity > 30 ? 'bg-red-400 shadow-sm shadow-red-300' : 'bg-gray-200'}`}></div>
+                          </div>
                       </div>
                   </div>
               )}
@@ -425,11 +537,11 @@ function MentalHealthMentor() {
                   </div>
               </div>
           ) : (
-              <>
-                  <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 scroll-smooth">
+              <div className="flex-1 flex flex-col overflow-hidden">
+                  <div className="overflow-y-auto p-2 md:p-4 space-y-2 md:space-y-3 scroll-smooth">
                       {currentSession.messages.map((msg, idx) => (
                           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
-                              <div className={`relative max-w-[85%] md:max-w-[70%] rounded-2xl p-4 shadow-sm text-sm md:text-base leading-relaxed ${msg.role === 'user' ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-md' : 'bg-white border border-gray-100 rounded-bl-md text-gray-800'}`}>
+                              <div className={`relative max-w-[85%] md:max-w-[70%] rounded-2xl p-3 md:p-4 shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-md' : 'bg-white border border-gray-100 rounded-bl-md text-gray-800'}`}>
                                   {msg.role === 'ai' && <div className="absolute -left-9 top-0 hidden md:flex w-7 h-7 rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 items-center justify-center shadow-sm">{userData.mentor === 'male' ? <GraduationCap size={14} className="text-indigo-600"/> : <Sparkles size={14} className="text-rose-600"/>}</div>}
                                   {msg.role === 'user' ? msg.text : <FormattedText text={msg.text} />}
                               </div>
@@ -438,18 +550,88 @@ function MentalHealthMentor() {
                       {isLoading && <div className="flex pl-10"><div className="bg-white px-4 py-3 rounded-2xl border border-gray-200 flex gap-2.5 items-center shadow-sm"><Loader2 className="animate-spin text-indigo-500 w-4 h-4"/><span className="text-gray-400 text-sm">Đang suy nghĩ...</span></div></div>}
                       <div ref={messagesEndRef} />
                   </div>
-                  <div className="p-3 bg-white border-t border-gray-200 shadow-lg">
+                  <div className="p-2 bg-white border-t border-gray-200 shadow-lg safe-area-bottom flex-shrink-0 mt-auto">
                       <div className="max-w-4xl mx-auto flex gap-2 relative">
-                          <input ref={inputRef} onKeyDown={handleKeyDown} type="text" placeholder="Nhập tin nhắn..." className="flex-1 bg-gray-50 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-indigo-400 outline-none transition-all border border-gray-200" autoFocus />
-                          <button onClick={handleSend} disabled={isLoading} className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all"><Send className="w-5 h-5"/></button>
+                          <input 
+                            ref={inputRef} 
+                            onKeyDown={handleKeyDown} 
+                            type="text" 
+                            placeholder="Nhập tin nhắn..." 
+                            className="flex-1 bg-gray-50 rounded-lg px-3 py-1.5 text-sm focus:bg-white focus:ring-1 focus:ring-indigo-400 outline-none transition-all border border-gray-200 h-10" 
+                            autoFocus 
+                          />
+                          <button 
+                            onClick={handleSend} 
+                            disabled={isLoading} 
+                            className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all flex items-center justify-center flex-shrink-0"
+                          >
+                            <Send className="w-4 h-4"/>
+                          </button>
                       </div>
                   </div>
-              </>
+              </div>
           )}
         </div>
       )}
 
-      {/* RIGHT SIDEBAR - ROADMAP */}
+      {/* MOBILE ROADMAP MODAL */}
+      {showRoadmapMobile && currentSession && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+            onClick={() => setShowRoadmapMobile(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl lg:hidden max-h-[80vh] flex flex-col">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <div>
+                <h3 className="font-bold text-indigo-900 flex gap-2 text-lg">
+                  <ListChecks className="text-indigo-600 w-6 h-6"/> Lộ trình
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {isRoadmapLocked ? '🔒 Đã khóa' : '🔓 Tự động'}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowRoadmapMobile(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-6 h-6 text-gray-600"/>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {currentSession.roadmap.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-3 px-4 py-8">
+                  <div className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                    <Quote className="text-gray-300 w-7 h-7"/>
+                  </div>
+                  <p className="text-sm text-gray-400">Chia sẻ vấn đề để Cô lập kế hoạch nhé.</p>
+                </div>
+              ) : (
+                currentSession.roadmap.map((step, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      {getPhaseIcon(step.phase || '')}
+                      <span className="text-xs font-bold uppercase text-gray-500 tracking-wider">
+                        {step.phase}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-gray-800 mb-1 text-sm">{step.title}</h4>
+                    <p className="text-xs text-gray-600 leading-relaxed mb-2">{step.desc}</p>
+                    {step.time && (
+                      <div className="flex items-center gap-1 text-xs text-indigo-600">
+                        <Clock size={12}/>
+                        <span>{step.time}</span>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* RIGHT SIDEBAR - ROADMAP (Desktop) */}
       {currentSession && !showJournal && (
         <div className="hidden lg:flex w-80 xl:w-96 bg-white border-l border-gray-200 flex-col transition-all shadow-xl">
             <div className="p-4 bg-gradient-to-r from-indigo-50 via-white to-indigo-50 border-b border-gray-200 flex justify-between items-center">

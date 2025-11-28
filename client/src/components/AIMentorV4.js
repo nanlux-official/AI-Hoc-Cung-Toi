@@ -3,8 +3,8 @@ import axios from 'axios';
 import './AIMentorV4.css';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
-import { provinces, districts, schools, subjects, grades, bookSets, teachersBySubject } from '../data/schoolData';
-import { createShortPrompt, createHintPrompt, createSolutionPrompt } from './AIMentorV4_short';
+import { provinces, districts, schools, subjects, grades, bookSets } from '../data/schoolData';
+import { createShortPrompt } from './AIMentorV4_short';
 
 // Gemini API Configuration - sử dụng backend proxy
 const GEMINI_PROXY_URL = '/api/gemini/generate';
@@ -244,46 +244,103 @@ Chỉ trả lời gợi ý, không cần giải thích thêm.`;
 
 Câu hỏi: "${question}"
 
-Hãy đưa ra lời giải CHI TIẾT và cuối cùng gợi ý phần sách giáo khoa cần xem.
+Hãy đưa ra lời giải CHI TIẾT theo format BẮT BUỘC sau:
+
+✅ ĐÁP ÁN:
+[Đưa ra đáp án cuối cùng rõ ràng, ngắn gọn]
 
 📖 LỜI GIẢI CHI TIẾT:
 Bước 1: [Phân tích đề bài]
 Bước 2: [Xác định công thức/phương pháp]
 Bước 3: [Giải chi tiết từng bước]
-Bước 4: [Kết luận và đáp án]
+Bước 4: [Kết luận]
 
 💡 LƯU Ý:
 - [Những điểm cần chú ý]
 - [Sai lầm thường gặp]
 
-📚 THAM KHẢO SGK:
-Dựa vào câu hỏi, hãy gợi ý cụ thể:
-[BÀI]: Tên bài học trong SGK
-[CHƯƠNG]: Chương nào
-[TRANG]: Khoảng trang (ước tính)
-[CHỦ ĐỀ]: Kiến thức cần xem lại
+📚 KIẾN THỨC LIÊN QUAN TRONG SGK:
+BẮT BUỘC phải điền đầy đủ các thông tin sau (dựa vào nội dung SGK ${config.subject} lớp ${config.grade} - ${config.bookSet}):
 
-LaTeX: $công thức$. Ngắn gọn, rõ ràng.`;
+[CHƯƠNG]: [Viết tên chương cụ thể, VD: Chương 1: Phản ứng oxi hóa - khử]
+[BÀI]: [Viết tên bài học cụ thể, VD: Bài 1: Phản ứng oxi hóa - khử]
+[TRANG]: [Ước tính khoảng trang, VD: Trang 10-15]
+[KIẾN THỨC]: [Liệt kê các kiến thức cần xem lại, VD: Khái niệm số oxi hóa, quy tắc xác định số oxi hóa]
+
+QUAN TRỌNG: 
+- PHẢI điền đầy đủ 4 mục [CHƯƠNG], [BÀI], [TRANG], [KIẾN THỨC]
+- Tên chương và bài phải chính xác theo SGK ${config.bookSet}
+- LaTeX: $công thức$`;
 
       const aiResponse = await callGeminiAPI(prompt);
 
-      // Parse thông tin sách từ response
-      const lessonMatch = aiResponse.match(/\[BÀI\]:\s*(.+)/i);
-      const chapterMatch = aiResponse.match(/\[CHƯƠNG\]:\s*(.+)/i);
-      const pagesMatch = aiResponse.match(/\[TRANG\]:\s*(.+)/i);
-      const topicsMatch = aiResponse.match(/\[CHỦ ĐỀ\]:\s*(.+)/i);
+      // Parse thông tin từ response - hỗ trợ nhiều format
+      const answerMatch = aiResponse.match(/✅\s*ĐÁP ÁN:?\s*\n(.+?)(?=\n\n|📖)/is);
+      
+      // Helper function để clean text - loại bỏ dấu ** thừa và markdown
+      const cleanText = (text) => {
+        if (!text) return null;
+        return text
+          .trim()
+          .replace(/^\[|\]$/g, '') // Loại bỏ dấu ngoặc vuông đầu/cuối
+          .replace(/^\*\*\s*/g, '') // Loại bỏ ** ở đầu
+          .replace(/\s*\*\*$/g, '') // Loại bỏ ** ở cuối
+          .trim();
+      };
+      
+      // Parse chương - hỗ trợ nhiều format và loại bỏ dấu ngoặc vuông
+      let chapterText = null;
+      let chapterMatch = aiResponse.match(/\[CHƯƠNG\]:?\s*\[?(.+?)\]?(?=\n|\[BÀI\]|\[TRANG\]|$)/is);
+      if (!chapterMatch) {
+        chapterMatch = aiResponse.match(/Chương:?\s*(.+?)(?=\n|Bài|Trang|$)/i);
+      }
+      if (chapterMatch) {
+        chapterText = cleanText(chapterMatch[1]);
+      }
+      
+      // Parse bài học
+      let lessonText = null;
+      let lessonMatch = aiResponse.match(/\[BÀI\]:?\s*\[?(.+?)\]?(?=\n|\[TRANG\]|\[KIẾN THỨC\]|$)/is);
+      if (!lessonMatch) {
+        lessonMatch = aiResponse.match(/Bài học:?\s*(.+?)(?=\n|Trang|Kiến thức|$)/i);
+      }
+      if (lessonMatch) {
+        lessonText = cleanText(lessonMatch[1]);
+      }
+      
+      // Parse trang
+      let pagesText = null;
+      let pagesMatch = aiResponse.match(/\[TRANG\]:?\s*\[?(.+?)\]?(?=\n|\[KIẾN THỨC\]|$)/is);
+      if (!pagesMatch) {
+        pagesMatch = aiResponse.match(/Trang:?\s*(.+?)(?=\n|Kiến thức|Chủ đề|$)/i);
+      }
+      if (pagesMatch) {
+        pagesText = cleanText(pagesMatch[1]);
+      }
+      
+      // Parse kiến thức
+      let knowledgeText = null;
+      let knowledgeMatch = aiResponse.match(/\[KIẾN THỨC\]:?\s*\[?(.+?)\]?(?=\n\n|$)/is);
+      if (!knowledgeMatch) {
+        knowledgeMatch = aiResponse.match(/Chủ đề liên quan:?\s*(.+?)(?=\n\n|$)/is);
+      }
+      if (knowledgeMatch) {
+        knowledgeText = cleanText(knowledgeMatch[1]);
+      }
 
       const solutionMessage = {
         type: 'solution',
         data: {
+          answer: answerMatch ? answerMatch[1].trim() : null,
           solution: aiResponse,
           bookReference: {
-            book: `Sách giáo khoa ${config.subject} ${config.grade} - ${config.bookSet}`,
+            book: `Sách giáo khoa ${config.subject} lớp ${config.grade}`,
+            bookSet: config.bookSet,
             program: 'Chương trình Giáo dục phổ thông 2018',
-            lesson: lessonMatch ? lessonMatch[1].trim() : 'Xem trong lời giải',
-            chapter: chapterMatch ? chapterMatch[1].trim() : 'Xem trong lời giải',
-            pages: pagesMatch ? pagesMatch[1].trim() : 'Xem trong lời giải',
-            topics: topicsMatch ? topicsMatch[1].trim() : 'Xem trong lời giải'
+            chapter: chapterText || 'Xem trong lời giải chi tiết ở trên',
+            lesson: lessonText || 'Xem trong lời giải chi tiết ở trên',
+            pages: pagesText || 'Tham khảo mục lục SGK',
+            knowledge: knowledgeText || 'Xem nội dung liên quan trong lời giải'
           }
         },
         timestamp: new Date()
@@ -364,33 +421,38 @@ LaTeX: $công thức$. Ngắn gọn, rõ ràng.`;
         .map(msg => `${msg.type === 'user' ? 'Học sinh' : 'AI'}: ${msg.text || msg.data?.message || ''}`)
         .join('\n');
 
-      const prompt = `Hãy phân tích cuộc trò chuyện học tập sau và tạo:
-
-1. TÓM TẮT (3-5 điểm chính đã học)
-2. SƠ ĐỒ TƯ DUY (dạng text, dùng - và indent)
+      const prompt = `Hãy phân tích cuộc trò chuyện học tập sau và tạo tóm tắt với sơ đồ tư duy dạng cây:
 
 Cuộc trò chuyện:
 ${conversationText}
 
 Môn: ${config.subject} - Lớp ${config.grade}
 
-Trả lời theo format:
+Trả lời theo format BẮT BUỘC:
 
 📝 TÓM TẮT:
-- [Điểm 1]
-- [Điểm 2]
-...
+- [Điểm chính 1]
+- [Điểm chính 2]
+- [Điểm chính 3]
 
-🧠 SƠ ĐỒ TƯ DUY:
-[Chủ đề chính]
-  - [Khái niệm 1]
-    - [Chi tiết]
-  - [Khái niệm 2]
-    - [Chi tiết]
+🌳 SƠ ĐỒ TƯ DUY (dạng cây phân cấp):
+[ROOT]Chủ đề chính
+  [NODE]Khái niệm 1
+    [LEAF]Chi tiết 1.1
+    [LEAF]Chi tiết 1.2
+  [NODE]Khái niệm 2
+    [LEAF]Chi tiết 2.1
+    [LEAF]Chi tiết 2.2
 
 💡 GỢI Ý HỌC TIẾP:
 - [Gợi ý 1]
-- [Gợi ý 2]`;
+- [Gợi ý 2]
+
+LƯU Ý: 
+- Dùng [ROOT] cho chủ đề chính
+- Dùng [NODE] cho các nhánh chính
+- Dùng [LEAF] cho các chi tiết cuối
+- Giữ nguyên indent (2 spaces cho mỗi cấp)`;
 
       const response = await callGeminiAPI(prompt);
       setSummary(response);
@@ -697,19 +759,35 @@ function Message({ message }) {
   }
   
   if (message.type === 'solution') {
+    const { answer, solution, bookReference } = message.data;
+    
     return (
       <div className="message solution-message">
         <strong>📚 Lời giải chi tiết:</strong>
-        <div>{renderTextWithLatex(message.data.solution)}</div>
-        {message.data.bookReference && (
+        
+        {/* Hiển thị đáp án nổi bật nếu có */}
+        {answer && (
+          <div className="answer-highlight">
+            <h4>✅ ĐÁP ÁN:</h4>
+            <div className="answer-content">{renderTextWithLatex(answer)}</div>
+          </div>
+        )}
+        
+        {/* Hiển thị lời giải đầy đủ */}
+        <div className="solution-content">{renderTextWithLatex(solution)}</div>
+        
+        {/* Hiển thị thông tin sách giáo khoa - LUÔN HIỂN THỊ ĐẦY ĐỦ */}
+        {bookReference && (
           <div className="book-reference">
-            <h4>📖 Tham khảo sách giáo khoa:</h4>
-            <p><strong>Sách:</strong> {message.data.bookReference.book}</p>
-            <p><strong>Chương trình:</strong> {message.data.bookReference.program}</p>
-            <p><strong>Bài học:</strong> {message.data.bookReference.lesson}</p>
-            <p><strong>Chương:</strong> {message.data.bookReference.chapter}</p>
-            <p><strong>Trang:</strong> {message.data.bookReference.pages}</p>
-            <p><strong>Chủ đề liên quan:</strong> {message.data.bookReference.topics}</p>
+            <h4>📖 Tham khảo Sách giáo khoa:</h4>
+            <div className="book-info">
+              <p><strong>📚 Sách:</strong> {bookReference.book} - {bookReference.bookSet}</p>
+              <p><strong>📋 Chương trình:</strong> {bookReference.program}</p>
+              <p><strong>📂 Chương:</strong> {bookReference.chapter}</p>
+              <p><strong>📄 Bài học:</strong> {bookReference.lesson}</p>
+              <p><strong>📖 Trang:</strong> {bookReference.pages}</p>
+              <p><strong>💡 Chủ đề liên quan:</strong> {bookReference.knowledge}</p>
+            </div>
           </div>
         )}
       </div>
@@ -751,9 +829,87 @@ function InputArea({ currentInput, setCurrentInput, onSend, onRequestHint, onSho
   );
 }
 
-function SummaryPanel({ summary, loading, onClose }) {
+// Component render sơ đồ tư duy dạng mind map
+function MindMapTree({ text }) {
+  const lines = text.split('\n').filter(line => line.trim());
+  
+  // Parse cấu trúc
+  let rootNode = null;
+  const branches = [];
+  let currentBranch = null;
+  
+  lines.forEach((line) => {
+    if (line.includes('[ROOT]')) {
+      rootNode = line.replace('[ROOT]', '').trim();
+    } else if (line.includes('[NODE]')) {
+      const content = line.replace('[NODE]', '').trim();
+      currentBranch = { title: content, leaves: [] };
+      branches.push(currentBranch);
+    } else if (line.includes('[LEAF]') && currentBranch) {
+      const content = line.replace('[LEAF]', '').trim();
+      currentBranch.leaves.push(content);
+    }
+  });
+  
   return (
-    <div className="history-panel">
+    <div className="mind-map-container">
+      {/* Node trung tâm */}
+      {rootNode && (
+        <div className="mind-map-center">
+          <div className="center-node">
+            <span className="node-icon">🎯</span>
+            <span className="node-text">{rootNode}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Các nhánh xung quanh */}
+      <div className="mind-map-branches">
+        {branches.map((branch, idx) => (
+          <div key={idx} className={`branch-container branch-${idx % 4}`}>
+            <div className="branch-line"></div>
+            <div className="branch-node">
+              <span className="node-icon">📌</span>
+              <span className="node-text">{branch.title}</span>
+            </div>
+            {branch.leaves.length > 0 && (
+              <div className="leaf-container">
+                {branch.leaves.map((leaf, leafIdx) => (
+                  <div key={leafIdx} className="leaf-node">
+                    <div className="leaf-line"></div>
+                    <span className="leaf-icon">🔹</span>
+                    <span className="leaf-text">{leaf}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SummaryPanel({ summary, loading, onClose }) {
+  // Parse summary thành các phần
+  const parseSummary = (text) => {
+    if (!text) return { summary: '', mindMap: '', suggestions: '' };
+    
+    const summaryMatch = text.match(/📝 TÓM TẮT:(.+?)(?=🌳|💡|$)/s);
+    const mindMapMatch = text.match(/🌳 SƠ ĐỒ TƯ DUY[^:]*:(.+?)(?=💡|$)/s);
+    const suggestionsMatch = text.match(/💡 GỢI Ý HỌC TIẾP:(.+?)$/s);
+    
+    return {
+      summary: summaryMatch ? summaryMatch[1].trim() : '',
+      mindMap: mindMapMatch ? mindMapMatch[1].trim() : '',
+      suggestions: suggestionsMatch ? suggestionsMatch[1].trim() : ''
+    };
+  };
+  
+  const { summary: summaryText, mindMap, suggestions } = parseSummary(summary);
+  
+  return (
+    <div className="history-panel summary-panel">
       <div className="history-header">
         <h3>📊 Tóm tắt & Sơ đồ tư duy</h3>
         <button onClick={onClose}>✕</button>
@@ -764,11 +920,46 @@ function SummaryPanel({ summary, loading, onClose }) {
             <div className="loading">Đang phân tích cuộc trò chuyện...</div>
           </div>
         ) : summary ? (
-          <div style={{ padding: '20px', whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>
-            {renderTextWithLatex(summary)}
+          <div style={{ padding: '20px' }}>
+            {/* Tóm tắt */}
+            {summaryText && (
+              <div className="summary-section">
+                <h4>📝 TÓM TẮT</h4>
+                <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>
+                  {renderTextWithLatex(summaryText)}
+                </div>
+              </div>
+            )}
+            
+            {/* Sơ đồ tư duy */}
+            {mindMap && (
+              <div className="summary-section">
+                <h4>🌳 SƠ ĐỒ TƯ DUY</h4>
+                <MindMapTree text={mindMap} />
+              </div>
+            )}
+            
+            {/* Gợi ý học tiếp */}
+            {suggestions && (
+              <div className="summary-section">
+                <h4>💡 GỢI Ý HỌC TIẾP</h4>
+                <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>
+                  {renderTextWithLatex(suggestions)}
+                </div>
+              </div>
+            )}
+            
+            {/* Fallback nếu không parse được */}
+            {!summaryText && !mindMap && !suggestions && (
+              <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8' }}>
+                {renderTextWithLatex(summary)}
+              </div>
+            )}
           </div>
         ) : (
-          <p>Chưa có tóm tắt</p>
+          <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+            Chưa có tóm tắt
+          </p>
         )}
       </div>
     </div>
