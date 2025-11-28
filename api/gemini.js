@@ -2,11 +2,13 @@
 const axios = require('axios');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 if (!GEMINI_API_KEY) {
   console.error('⚠️  GEMINI_API_KEY is not set in environment variables!');
 }
+
+console.log('API Key exists:', !!GEMINI_API_KEY);
 
 module.exports = async (req, res) => {
   // Enable CORS
@@ -81,9 +83,11 @@ module.exports = async (req, res) => {
     }
   } catch (error) {
     console.error('Gemini API Error:', error.message);
+    console.error('Error details:', error.response?.data || error);
     res.status(500).json({
       success: false,
-      error: error.response?.data?.error?.message || error.message
+      error: error.response?.data?.error?.message || error.message,
+      details: error.response?.data || 'No additional details'
     });
   }
 };
