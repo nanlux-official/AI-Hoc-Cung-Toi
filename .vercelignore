@@ -1,8 +1,6 @@
 node_modules
 .env
-.env.local
-*.log
-.DS_Store
+server
 client/node_modules
-client/build
-.git
+npm-debug.log
+.DS_Store
