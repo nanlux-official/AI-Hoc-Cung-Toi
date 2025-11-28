@@ -157,6 +157,50 @@ function StudySpace() {
 
 // ============= SIDEBAR =============
 function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGlobalRunning, formatTime }) {
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [pauseReason, setPauseReason] = useState('');
+  const [pauseCount, setPauseCount] = useState(() => {
+    const saved = localStorage.getItem('pauseCount');
+    return saved ? parseInt(saved) : 0;
+  });
+  const MAX_PAUSES = 3;
+
+  const handlePauseClick = () => {
+    if (isGlobalRunning) {
+      if (pauseCount >= MAX_PAUSES) {
+        alert(`⚠️ Bạn đã dừng ${MAX_PAUSES} lần rồi! Hãy tập trung học tập nhé.`);
+        return;
+      }
+      setShowPauseModal(true);
+    } else {
+      setIsGlobalRunning(true);
+    }
+  };
+
+  const handleConfirmPause = () => {
+    if (!pauseReason.trim()) {
+      alert('Vui lòng nhập lý do dừng!');
+      return;
+    }
+    
+    const newCount = pauseCount + 1;
+    setPauseCount(newCount);
+    localStorage.setItem('pauseCount', newCount.toString());
+    
+    // Lưu lý do vào localStorage
+    const pauseHistory = JSON.parse(localStorage.getItem('pauseHistory') || '[]');
+    pauseHistory.push({
+      time: new Date().toISOString(),
+      reason: pauseReason,
+      duration: globalTime
+    });
+    localStorage.setItem('pauseHistory', JSON.stringify(pauseHistory));
+    
+    setIsGlobalRunning(false);
+    setShowPauseModal(false);
+    setPauseReason('');
+  };
+
   const tabs = [
     { id: 'dashboard', icon: Target, label: 'Tổng quan' },
     { id: 'scheduler', icon: Calendar, label: 'Lịch học' },
@@ -169,45 +213,108 @@ function Sidebar({ activeTab, setActiveTab, globalTime, isGlobalRunning, setIsGl
   ];
 
   return (
-    <div className="w-64 bg-white/80 backdrop-blur-md shadow-xl h-screen sticky top-0">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          AI Học Cùng Tôi
-        </h1>
-        <p className="text-xs text-slate-500 mt-1">Quản lý học tập thông minh</p>
-      </div>
+    <>
+      <div className="w-64 bg-white/80 backdrop-blur-md shadow-xl h-screen sticky top-0">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            AI Học Cùng Tôi
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">Quản lý học tập thông minh</p>
+        </div>
 
-      {/* Global Timer */}
-      <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
-        <div className="text-xs uppercase tracking-wide mb-2">Tổng thời gian</div>
-        <div className="text-3xl font-bold font-mono">{formatTime(globalTime)}</div>
-        <button
-          onClick={() => setIsGlobalRunning(!isGlobalRunning)}
-          className="mt-3 w-full py-2 bg-white/20 hover:bg-white/30 rounded-lg transition"
-        >
-          {isGlobalRunning ? <Pause className="inline w-4 h-4" /> : <Play className="inline w-4 h-4" />}
-          <span className="ml-2">{isGlobalRunning ? 'Tạm dừng' : 'Bắt đầu'}</span>
-        </button>
-      </div>
-
-      {/* Navigation */}
-      <nav className="mt-6">
-        {tabs.map(tab => (
+        {/* Global Timer */}
+        <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+          <div className="text-xs uppercase tracking-wide mb-2">Tổng thời gian</div>
+          <div className="text-3xl font-bold font-mono">{formatTime(globalTime)}</div>
+          <div className="text-xs mt-1 opacity-80">
+            Số lần dừng: {pauseCount}/{MAX_PAUSES}
+          </div>
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`w-full flex items-center gap-3 px-6 py-3 transition ${
-              activeTab === tab.id
-                ? 'bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
+            onClick={handlePauseClick}
+            className="mt-3 w-full py-2 bg-white/20 hover:bg-white/30 rounded-lg transition"
           >
-            <tab.icon className="w-5 h-5" />
-            <span className="font-medium">{tab.label}</span>
+            {isGlobalRunning ? <Pause className="inline w-4 h-4" /> : <Play className="inline w-4 h-4" />}
+            <span className="ml-2">{isGlobalRunning ? 'Tạm dừng' : 'Bắt đầu'}</span>
           </button>
-        ))}
-      </nav>
-    </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="mt-6">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-6 py-3 transition ${
+                activeTab === tab.id
+                  ? 'bg-indigo-50 text-indigo-600 border-r-4 border-indigo-600'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <tab.icon className="w-5 h-5" />
+              <span className="font-medium">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Pause Modal */}
+      {showPauseModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-slate-800">⏸️ Tạm dừng học tập</h3>
+              <button 
+                onClick={() => setShowPauseModal(false)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full p-2 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-slate-600 mb-2">
+                Bạn đã dừng <span className="font-bold text-orange-600">{pauseCount}/{MAX_PAUSES}</span> lần.
+              </p>
+              {pauseCount >= MAX_PAUSES - 1 && (
+                <p className="text-xs text-red-600 bg-red-50 p-2 rounded-lg">
+                  ⚠️ Đây là lần dừng cuối cùng! Hãy tập trung học tập.
+                </p>
+              )}
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Lý do dừng học: <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={pauseReason}
+                onChange={(e) => setPauseReason(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-indigo-500 focus:outline-none resize-none"
+                rows="3"
+                placeholder="VD: Đi vệ sinh, uống nước, nghỉ ngơi..."
+                maxLength={100}
+              />
+              <p className="text-xs text-slate-400 mt-1">{pauseReason.length}/100 ký tự</p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowPauseModal(false)}
+                className="flex-1 py-3 bg-slate-200 text-slate-700 rounded-lg font-semibold hover:bg-slate-300 transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleConfirmPause}
+                className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-semibold hover:shadow-lg transition"
+              >
+                Xác nhận dừng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
