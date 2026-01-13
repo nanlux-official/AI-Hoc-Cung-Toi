@@ -200,7 +200,7 @@ function StudySpace() {
           )}
           
           {activeTab === 'mental' && (
-            <div className="h-full rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden" style={{ minHeight: '80vh' }}>
               <MentalHealthMentor />
             </div>
           )}

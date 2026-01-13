@@ -309,96 +309,206 @@ function MentalHealthMentor() {
     );
   };
 
+  // State cho việc hiển thị guide
+  const [showGuideModal, setShowGuideModal] = useState(false);
+
+  // Component Hướng dẫn sử dụng AI (Card)
+  const GuideCard = () => (
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-purple-50">
+        <h2 className="text-base sm:text-lg font-bold text-indigo-800 flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-indigo-600" />
+          Hướng dẫn sử dụng AI Tâm Lý
+        </h2>
+      </div>
+      <div className="p-4 sm:p-5 space-y-3">
+        <div className="flex items-start gap-3 p-2.5 bg-blue-50 rounded-xl">
+          <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <MessageSquare className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-800 text-sm">Chia sẻ cảm xúc</h4>
+            <p className="text-xs text-blue-700 mt-0.5">Kể cho AI nghe về tâm trạng, lo lắng hoặc niềm vui của em.</p>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-3 p-2.5 bg-green-50 rounded-xl">
+          <div className="w-7 h-7 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <ListChecks className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-green-800 text-sm">Nhận lộ trình</h4>
+            <p className="text-xs text-green-700 mt-0.5">AI tự động tạo kế hoạch 3 pha phù hợp với vấn đề của em.</p>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-3 p-2.5 bg-purple-50 rounded-xl">
+          <div className="w-7 h-7 bg-purple-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Book className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-purple-800 text-sm">Lưu & xem lại</h4>
+            <p className="text-xs text-purple-700 mt-0.5">Lộ trình được lưu trong "Sổ tay" để theo dõi tiến độ.</p>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-3 p-2.5 bg-orange-50 rounded-xl">
+          <div className="w-7 h-7 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Lock className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-orange-800 text-sm">Khóa lộ trình</h4>
+            <p className="text-xs text-orange-700 mt-0.5">Bấm 🔒 để giữ nguyên lộ trình, tránh AI thay đổi.</p>
+          </div>
+        </div>
+        
+        <div className="flex items-start gap-3 p-2.5 bg-rose-50 rounded-xl border border-rose-200">
+          <div className="w-7 h-7 bg-rose-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <AlertCircle className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-rose-800 text-sm">Lưu ý quan trọng</h4>
+            <p className="text-xs text-rose-700 mt-0.5">AI chỉ hỗ trợ tư vấn, <strong>không thay thế</strong> chuyên gia tâm lý.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Component Hồ sơ cá nhân (Card)
+  const ProfileCard = () => (
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div className="p-4 sm:p-5">
+        <div className="text-center mb-4">
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-lg shadow-indigo-200">
+            <User className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-lg font-bold text-gray-800">Hồ sơ cá nhân</h1>
+          <p className="text-gray-500 mt-0.5 text-xs">Giúp AI hiểu em hơn</p>
+        </div>
+        
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Tên của em</label>
+            <input 
+              type="text" 
+              className="w-full px-3 py-2 text-sm rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
+              placeholder="Nhập tên..." 
+              value={userData.name} 
+              onChange={e => setUserData({...userData, name: e.target.value})} 
+            />
+          </div>
+          
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Người đồng hành</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={() => setUserData({...userData, mentor: 'male'})} 
+                className={`p-2 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${userData.mentor === 'male' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+              >
+                <GraduationCap className="w-5 h-5" />
+                <span className="font-semibold text-xs">Thầy Giáo</span>
+              </button>
+              <button 
+                onClick={() => setUserData({...userData, mentor: 'female'})} 
+                className={`p-2 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${userData.mentor === 'female' ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+              >
+                <Sparkles className="w-5 h-5" />
+                <span className="font-semibold text-xs">Cô Giáo</span>
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              Tên {userData.mentor === 'male' ? 'Thầy' : 'Cô'} giáo
+            </label>
+            <input 
+              type="text" 
+              className="w-full px-3 py-2 text-sm rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
+              placeholder={`Nhập tên ${userData.mentor === 'male' ? 'thầy' : 'cô'}...`}
+              value={userData.teacherName} 
+              onChange={e => setUserData({...userData, teacherName: e.target.value})} 
+            />
+          </div>
+          
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              {userData.mentor === 'male' ? 'Thầy' : 'Cô'} dạy môn
+            </label>
+            <select 
+              className="w-full px-3 py-2 text-sm rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all"
+              value={userData.teacherSubject}
+              onChange={e => setUserData({...userData, teacherSubject: e.target.value})}
+            >
+              <option value="">-- Chọn môn học --</option>
+              <option value="Toán">Toán</option>
+              <option value="Vật lý">Vật lý</option>
+              <option value="Hóa học">Hóa học</option>
+              <option value="Sinh học">Sinh học</option>
+              <option value="Văn học">Văn học</option>
+              <option value="Tiếng Anh">Tiếng Anh</option>
+              <option value="Lịch sử">Lịch sử</option>
+              <option value="Địa lý">Địa lý</option>
+              <option value="Giáo dục công dân">Giáo dục công dân</option>
+              <option value="Tin học">Tin học</option>
+              <option value="Công nghệ">Công nghệ</option>
+              <option value="Thể dục">Thể dục</option>
+              <option value="Âm nhạc">Âm nhạc</option>
+              <option value="Mỹ thuật">Mỹ thuật</option>
+            </select>
+          </div>
+          
+          <button 
+            disabled={!userData.name.trim() || !userData.teacherName.trim() || !userData.teacherSubject} 
+            onClick={() => setUserData({...userData, setupDone: true})} 
+            className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2.5 text-sm rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl mt-2"
+          >
+            Bắt đầu ngay 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Modal Hướng dẫn (cho khi đã setup xong)
+  const GuideModal = () => (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white rounded-t-2xl">
+          <h2 className="text-lg sm:text-xl font-bold text-indigo-800 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-indigo-600" />
+            Hướng dẫn sử dụng AI Tâm Lý
+          </h2>
+          <button 
+            onClick={() => setShowGuideModal(false)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        <div className="p-4 sm:p-6">
+          <GuideCard />
+          <button 
+            onClick={() => setShowGuideModal(false)}
+            className="w-full mt-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition"
+          >
+            Đã hiểu!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (!userData.setupDone) {
     return (
-      <div className="h-full min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-start sm:items-center justify-center p-4 pt-8 sm:pt-4 font-sans text-gray-900 overflow-y-auto">
-        <div className="bg-white rounded-3xl shadow-xl p-4 sm:p-6 md:p-8 max-w-md w-full border border-gray-100">
-           <div className="text-center mb-4 sm:mb-6">
-            <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-lg shadow-indigo-200">
-              <User className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-            </div>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">Hồ sơ cá nhân</h1>
-            <p className="text-gray-500 mt-1 text-xs sm:text-sm">Giúp AI hiểu em hơn</p>
-          </div>
-          <div className="space-y-3 sm:space-y-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Tên của em</label>
-              <input 
-                type="text" 
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
-                placeholder="Nhập tên..." 
-                value={userData.name} 
-                onChange={e => setUserData({...userData, name: e.target.value})} 
-              />
-            </div>
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">Người đồng hành</label>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                <button 
-                  onClick={() => setUserData({...userData, mentor: 'male'})} 
-                  className={`p-2 sm:p-3 rounded-xl border-2 flex flex-col items-center gap-1 sm:gap-2 transition-all ${userData.mentor === 'male' ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
-                >
-                  <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7" />
-                  <span className="font-semibold text-xs sm:text-sm">Thầy Giáo</span>
-                </button>
-                <button 
-                  onClick={() => setUserData({...userData, mentor: 'female'})} 
-                  className={`p-2 sm:p-3 rounded-xl border-2 flex flex-col items-center gap-1 sm:gap-2 transition-all ${userData.mentor === 'female' ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-md' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
-                >
-                  <Sparkles className="w-6 h-6 sm:w-7 sm:h-7" />
-                  <span className="font-semibold text-xs sm:text-sm">Cô Giáo</span>
-                </button>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                Tên {userData.mentor === 'male' ? 'Thầy' : 'Cô'} giáo
-              </label>
-              <input 
-                type="text" 
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all" 
-                placeholder={`Nhập tên ${userData.mentor === 'male' ? 'thầy' : 'cô'}...`}
-                value={userData.teacherName} 
-                onChange={e => setUserData({...userData, teacherName: e.target.value})} 
-              />
-            </div>
-            
-            <div>
-              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2">
-                {userData.mentor === 'male' ? 'Thầy' : 'Cô'} dạy môn
-              </label>
-              <select 
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base rounded-xl border-2 border-gray-200 bg-gray-50 focus:bg-white focus:border-indigo-500 outline-none transition-all"
-                value={userData.teacherSubject}
-                onChange={e => setUserData({...userData, teacherSubject: e.target.value})}
-              >
-                <option value="">-- Chọn môn học --</option>
-                <option value="Toán">Toán</option>
-                <option value="Vật lý">Vật lý</option>
-                <option value="Hóa học">Hóa học</option>
-                <option value="Sinh học">Sinh học</option>
-                <option value="Văn học">Văn học</option>
-                <option value="Tiếng Anh">Tiếng Anh</option>
-                <option value="Lịch sử">Lịch sử</option>
-                <option value="Địa lý">Địa lý</option>
-                <option value="Giáo dục công dân">Giáo dục công dân</option>
-                <option value="Tin học">Tin học</option>
-                <option value="Công nghệ">Công nghệ</option>
-                <option value="Thể dục">Thể dục</option>
-                <option value="Âm nhạc">Âm nhạc</option>
-                <option value="Mỹ thuật">Mỹ thuật</option>
-              </select>
-            </div>
-            
-            <button 
-              disabled={!userData.name.trim() || !userData.teacherName.trim() || !userData.teacherSubject} 
-              onClick={() => setUserData({...userData, setupDone: true})} 
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-2.5 sm:py-3 text-sm sm:text-base rounded-xl font-bold hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl mt-2"
-            >
-              Bắt đầu ngay
-            </button>
-          </div>
+      <div className="h-full bg-gradient-to-br from-slate-50 to-indigo-50 p-4 font-sans text-gray-900 overflow-y-auto">
+        <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-4 items-start">
+          {/* Card Hồ sơ cá nhân */}
+          <ProfileCard />
+          
+          {/* Card Hướng dẫn sử dụng */}
+          <GuideCard />
         </div>
       </div>
     );
@@ -408,6 +518,9 @@ function MentalHealthMentor() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-indigo-50 overflow-hidden font-sans text-gray-900">
+      {/* Modals */}
+      {showGuideModal && <GuideModal />}
+      
       {/* MOBILE OVERLAY/BACKDROP */}
       {showHistoryMobile && (
         <div 
@@ -462,9 +575,17 @@ function MentalHealthMentor() {
               ))
             )}
         </div>
-        <div className="p-3 border-t bg-gradient-to-r from-gray-50 to-indigo-50 flex gap-2.5 items-center">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">{userData.name.charAt(0).toUpperCase()}</div>
-            <div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-800 truncate">{userData.name}</p><button onClick={() => setUserData({...userData, setupDone: false})} className="text-xs text-indigo-600 hover:text-indigo-700 hover:underline">Đổi thông tin</button></div>
+        <div className="p-3 border-t bg-gradient-to-r from-gray-50 to-indigo-50">
+            <div className="flex gap-2.5 items-center mb-2">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md">{userData.name.charAt(0).toUpperCase()}</div>
+              <div className="flex-1 min-w-0"><p className="text-sm font-bold text-gray-800 truncate">{userData.name}</p><button onClick={() => setUserData({...userData, setupDone: false})} className="text-xs text-indigo-600 hover:text-indigo-700 hover:underline">Đổi thông tin</button></div>
+            </div>
+            <button 
+              onClick={() => setShowGuideModal(true)} 
+              className="w-full flex gap-2 justify-center p-2 rounded-lg text-xs font-medium border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition"
+            >
+              <AlertCircle className="w-3.5 h-3.5"/> Hướng dẫn sử dụng
+            </button>
         </div>
       </div>
 
